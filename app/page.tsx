@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { identifyUser, bindWorkspace, resetAnalytics, captureProjectCreated, captureTaskCompleted } from '@/lib/posthog-client'
 import OnboardingStepper from '@/components/OnboardingStepper'
 
@@ -12,8 +13,15 @@ export default function Page() {
 
   return (
     <main style={{ padding: 24, maxWidth: 800, margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
-      <h1>D7 Activation — Demo Controls</h1>
-      <p>Step 1: Identify a user and bind a <b>workspace</b> group. Then fire minimal events.</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div>
+          <h1>D7 Activation — Demo Controls</h1>
+          <p>Step 1: Identify a user and bind a <b>workspace</b> group. Then fire minimal events.</p>
+        </div>
+        <Link href="/dashboard" style={{ padding: '8px 16px', backgroundColor: '#4F46E5', color: 'white', borderRadius: 8, textDecoration: 'none', fontWeight: 500 }}>
+          📊 Dashboard →
+        </Link>
+      </div>
 
       <section style={{ display: 'grid', gap: 12, marginTop: 20 }}>
         <label>
