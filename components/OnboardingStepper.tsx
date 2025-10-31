@@ -25,6 +25,7 @@ export default function OnboardingStepper({
 
   const handleCreateWorkspace = async () => {
     try {
+      console.log('Creating workspace with name:', workspaceName, 'for user:', userId)
       const response = await fetch("/api/workspace", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -36,7 +37,7 @@ export default function OnboardingStepper({
       })
       const result = await response.json()
       if (response.ok) {
-        console.log('Workspace created:', result)
+        console.log('✅ Workspace created successfully:', result)
         setWorkspaceId(result.workspaceId)
         // Bind workspace to PostHog client side
         bindWorkspace(result.workspaceId)
@@ -45,10 +46,10 @@ export default function OnboardingStepper({
         }
         setWorkspaceStatus("success")
       } else {
-        console.error('Failed to create workspace:', result)
+        console.error('❌ Failed to create workspace:', result)
       }
     } catch (error) {
-      console.error('Error creating workspace:', error)
+      console.error('❌ Error creating workspace:', error)
     }
   }
 
