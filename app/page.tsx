@@ -91,7 +91,11 @@ export default function Page() {
 
       <div style={{ marginTop: 40, borderTop: '1px solid #ccc', paddingTop: 20 }}>
         <h2>Onboarding UI (v0.app style)</h2>
-        <OnboardingStepper />
+        <OnboardingStepper 
+          userId={userId}
+          workspaceId={workspaceId}
+          onWorkspaceCreated={(newWorkspaceId) => setWorkspaceId(newWorkspaceId)}
+        />
       </div>
     </main>
   )

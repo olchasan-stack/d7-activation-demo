@@ -5,30 +5,68 @@ import { captureProjectCreated, captureTaskCompleted } from "@/lib/posthog-clien
 
 type StepStatus = "idle" | "success"
 
-export default function OnboardingStepper() {
+export default function OnboardingStepper({ 
+  userId = "u_1001", 
+  workspaceId: initialWorkspaceId = "ws_2001",
+  onWorkspaceCreated
+}: { 
+  userId?: string
+  workspaceId?: string
+  onWorkspaceCreated?: (workspaceId: string) => void
+}) {
+  const [workspaceId, setWorkspaceId] = useState(initialWorkspaceId)
+  const [workspaceName, setWorkspaceName] = useState("My Workspace")
+  const [workspaceStatus, setWorkspaceStatus] = useState<StepStatus>("idle")
   const [step1Status, setStep1Status] = useState<StepStatus>("idle")
   const [step2Status, setStep2Status] = useState<StepStatus>("idle")
   const [inviteSentStatus, setInviteSentStatus] = useState<StepStatus>("idle")
   const [inviteAcceptedStatus, setInviteAcceptedStatus] = useState<StepStatus>("idle")
 
+  const handleCreateWorkspace = async () => {
+    try {
+      const response = await fetch("/api/workspace", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          name: workspaceName, 
+          userId: userId,
+          properties: { plan: 'free', seat_count: 2 }
+        }),
+      })
+      const result = await response.json()
+      if (response.ok) {
+        console.log('Workspace created:', result)
+        setWorkspaceId(result.workspaceId)
+        if (onWorkspaceCreated) {
+          onWorkspaceCreated(result.workspaceId)
+        }
+        setWorkspaceStatus("success")
+      } else {
+        console.error('Failed to create workspace:', result)
+      }
+    } catch (error) {
+      console.error('Error creating workspace:', error)
+    }
+  }
+
   const handleCreateProject = async () => {
-    await captureProjectCreated("ws_2001", "pr_3001")
+    await captureProjectCreated(workspaceId, "pr_3001")
     // Update dashboard stats
     await fetch("/api/track/project", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workspaceId: "ws_2001" }),
+      body: JSON.stringify({ workspaceId }),
     })
     setStep1Status("success")
   }
 
   const handleCompleteTask = async () => {
-    await captureTaskCompleted("ws_2001", "t_4001", "pr_3001")
+    await captureTaskCompleted(workspaceId, "t_4001", "pr_3001")
     // Update dashboard stats
     await fetch("/api/track/task", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workspaceId: "ws_2001" }),
+      body: JSON.stringify({ workspaceId }),
     })
     setStep2Status("success")
   }
@@ -39,8 +77,8 @@ export default function OnboardingStepper() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         event: "invite_sent", 
-        distinctId: "u_1001", 
-        workspaceId: "ws_2001" 
+        distinctId: userId, 
+        workspaceId 
       }),
     })
     if (response.ok) {
@@ -54,8 +92,8 @@ export default function OnboardingStepper() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         event: "invite_accepted", 
-        distinctId: "u_1001", 
-        workspaceId: "ws_2001" 
+        distinctId: userId, 
+        workspaceId 
       }),
     })
     if (response.ok) {
@@ -68,6 +106,53 @@ export default function OnboardingStepper() {
       <h1 className="mb-8 text-3xl font-bold text-gray-900">Onboarding Steps</h1>
 
       <div className="space-y-6">
+        {/* Step 0: Create Workspace */}
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex-1 mr-4">
+              <h2 className="text-xl font-semibold text-gray-900">Step 0: Create Your Workspace</h2>
+              <p className="mt-1 text-sm text-gray-600">Set up your workspace to get started</p>
+              <div className="mt-4 space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Workspace Name</label>
+                  <input
+                    type="text"
+                    value={workspaceName}
+                    onChange={(e) => setWorkspaceName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="My Workspace"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+                  <input
+                    type="text"
+                    value={userId}
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500"
+                  />
+                </div>
+              </div>
+            </div>
+            {workspaceStatus === "success" && (
+              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                ✓ Created
+              </span>
+            )}
+          </div>
+          <button
+            onClick={handleCreateWorkspace}
+            disabled={workspaceStatus === "success"}
+            className={`rounded-md px-4 py-2 text-sm font-medium text-white ${
+              workspaceStatus === "success"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {workspaceStatus === "success" ? "Workspace Created" : "Create Workspace"}
+          </button>
+        </div>
+
         {/* Step 1: Create Project */}
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
