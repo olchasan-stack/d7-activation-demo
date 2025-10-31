@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update our in-memory workspace stats
-    updateWorkspaceStats(workspaceId, {
+    const stats = updateWorkspaceStats(workspaceId, {
       workspaceName: name,
       createdAt: new Date().toISOString(),
       hasProject: false,
@@ -95,6 +95,7 @@ export async function POST(req: NextRequest) {
       inviteSent: false,
       inviteAccepted: false,
     })
+    console.log('Updated workspace stats:', stats)
 
     return NextResponse.json({ 
       workspaceId,
