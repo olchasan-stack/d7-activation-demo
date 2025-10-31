@@ -32,6 +32,7 @@ export function resetAnalytics() {
 }
 
 export function captureProjectCreated(workspaceId: string, projectId: string, templateId?: string) {
+  initPostHog()
   posthog.capture('project_created', {
     workspace_id: String(workspaceId),
     project_id: String(projectId),
@@ -40,6 +41,7 @@ export function captureProjectCreated(workspaceId: string, projectId: string, te
 }
 
 export function captureTaskCompleted(workspaceId: string, taskId: string, projectId: string) {
+  initPostHog()
   posthog.capture('task_completed', {
     workspace_id: String(workspaceId),
     task_id: String(taskId),
