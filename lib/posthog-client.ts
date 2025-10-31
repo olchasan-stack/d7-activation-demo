@@ -7,10 +7,15 @@ export function initPostHog() {
   if (isInit) return
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
   const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com'
-  if (!key) return
+  console.log('initPostHog called:', { key: key ? 'Present' : 'Missing', host })
+  if (!key) {
+    console.error('PostHog key missing!')
+    return
+  }
   posthog.init(key, {
     api_host: host,
-    capture_pageview: false
+    capture_pageview: false,
+    loaded: (posthog) => console.log('PostHog initialized:', posthog)
   })
   isInit = true
 }
@@ -33,6 +38,7 @@ export function resetAnalytics() {
 
 export function captureProjectCreated(workspaceId: string, projectId: string, templateId?: string) {
   initPostHog()
+  console.log('captureProjectCreated:', workspaceId, projectId)
   posthog.capture('project_created', {
     workspace_id: String(workspaceId),
     project_id: String(projectId),
