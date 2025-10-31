@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { captureProjectCreated, captureTaskCompleted } from "@/lib/posthog-client"
+import { captureProjectCreated, captureTaskCompleted, bindWorkspace } from "@/lib/posthog-client"
 
 type StepStatus = "idle" | "success"
 
@@ -21,6 +21,7 @@ export default function OnboardingStepper({
   const [step2Status, setStep2Status] = useState<StepStatus>("idle")
   const [inviteSentStatus, setInviteSentStatus] = useState<StepStatus>("idle")
   const [inviteAcceptedStatus, setInviteAcceptedStatus] = useState<StepStatus>("idle")
+  const [taskCount, setTaskCount] = useState(0)
 
   const handleCreateWorkspace = async () => {
     try {
@@ -37,6 +38,8 @@ export default function OnboardingStepper({
       if (response.ok) {
         console.log('Workspace created:', result)
         setWorkspaceId(result.workspaceId)
+        // Bind workspace to PostHog client side
+        bindWorkspace(result.workspaceId)
         if (onWorkspaceCreated) {
           onWorkspaceCreated(result.workspaceId)
         }
@@ -61,7 +64,7 @@ export default function OnboardingStepper({
   }
 
   const handleCompleteTask = async () => {
-    await captureTaskCompleted(workspaceId, "t_4001", "pr_3001")
+    await captureTaskCompleted(workspaceId, `t_${Date.now()}`, "pr_3001")
     // Update dashboard stats
     await fetch("/api/track/task", {
       method: "POST",
@@ -69,6 +72,7 @@ export default function OnboardingStepper({
       body: JSON.stringify({ workspaceId }),
     })
     setStep2Status("success")
+    setTaskCount(prev => prev + 1)
   }
 
   const handleInviteSent = async () => {
@@ -101,137 +105,193 @@ export default function OnboardingStepper({
     }
   }
 
-  return (
-    <div className="mx-auto max-w-2xl p-8">
-      <h1 className="mb-8 text-3xl font-bold text-gray-900">Onboarding Steps</h1>
+  const allStepsComplete = workspaceStatus === "success" && step1Status === "success" && taskCount >= 3 && inviteSentStatus === "success" && inviteAcceptedStatus === "success"
 
-      <div className="space-y-6">
+  return (
+    <div className="mx-auto max-w-3xl p-8">
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">🚀 Get Started in 4 Steps</h1>
+        <p className="text-lg text-gray-600">Track your D7 activation rate in PostHog</p>
+      </div>
+
+      <div className="space-y-4">
         {/* Step 0: Create Workspace */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex-1 mr-4">
-              <h2 className="text-xl font-semibold text-gray-900">Step 0: Create Your Workspace</h2>
-              <p className="mt-1 text-sm text-gray-600">Set up your workspace to get started</p>
-              <div className="mt-4 space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Workspace Name</label>
-                  <input
-                    type="text"
-                    value={workspaceName}
-                    onChange={(e) => setWorkspaceName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="My Workspace"
-                  />
+        <div className={`rounded-xl border-2 p-6 transition-all ${
+          workspaceStatus === "success" ? "border-green-500 bg-green-50" : "border-gray-200 bg-white"
+        }`}>
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              {workspaceStatus === "success" ? (
+                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">
+                  ✓
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
-                  <input
-                    type="text"
-                    value={userId}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500"
-                  />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                  1
                 </div>
-              </div>
+              )}
             </div>
-            {workspaceStatus === "success" && (
-              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                ✓ Created
-              </span>
-            )}
+            <div className="flex-1">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Create Your Workspace</h3>
+              {workspaceStatus === "success" ? (
+                <div className="space-y-2">
+                  <p className="text-green-700 font-medium">✓ Workspace "{workspaceName}" created successfully!</p>
+                  <p className="text-sm text-gray-600">Your workspace is now being tracked in PostHog</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Name your workspace</label>
+                    <input
+                      type="text"
+                      value={workspaceName}
+                      onChange={(e) => setWorkspaceName(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="My Awesome Workspace"
+                    />
+                  </div>
+                  <button
+                    onClick={handleCreateWorkspace}
+                    className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+                  >
+                    Create Workspace →
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-          <button
-            onClick={handleCreateWorkspace}
-            disabled={workspaceStatus === "success"}
-            className={`rounded-md px-4 py-2 text-sm font-medium text-white ${
-              workspaceStatus === "success"
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
-          >
-            {workspaceStatus === "success" ? "Workspace Created" : "Create Workspace"}
-          </button>
         </div>
 
         {/* Step 1: Create Project */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">Step 1: Create Project</h2>
-              <p className="mt-1 text-sm text-gray-600">Initialize your first project</p>
-            </div>
-            {step1Status === "success" && (
-              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                ✓ Completed
-              </span>
-            )}
-          </div>
-          <button
-            onClick={handleCreateProject}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Create Project
-          </button>
-        </div>
-
-        {/* Step 2: Complete Task */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">Step 2: Complete Task</h2>
-              <p className="mt-1 text-sm text-gray-600">
-                Mark your first task as done (can be clicked multiple times)
-              </p>
-            </div>
-            {step2Status === "success" && (
-              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                ✓ Completed
-              </span>
-            )}
-          </div>
-          <button
-            onClick={handleCompleteTask}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Complete Task
-          </button>
-        </div>
-
-        {/* Step 3: Invite Teammate */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Step 3: Invite Teammate</h2>
-            <p className="mt-1 text-sm text-gray-600">Send and accept team invitations</p>
-          </div>
-          <div className="flex gap-3">
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={handleInviteSent}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-              >
-                Send Invite
-              </button>
-              {inviteSentStatus === "success" && (
-                <span className="rounded-full bg-green-100 px-3 py-1 text-center text-xs font-medium text-green-800">
-                  ✓ Invite Sent
-                </span>
+        <div className={`rounded-xl border-2 p-6 transition-all ${
+          step1Status === "success" ? "border-green-500 bg-green-50" : workspaceStatus === "success" ? "border-blue-300 bg-blue-50" : "border-gray-200 bg-gray-50"
+        }`}>
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              {step1Status === "success" ? (
+                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">
+                  ✓
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
+                  2
+                </div>
               )}
             </div>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={handleInviteAccepted}
-                className="rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-              >
-                Accept Invite
-              </button>
-              {inviteAcceptedStatus === "success" && (
-                <span className="rounded-full bg-green-100 px-3 py-1 text-center text-xs font-medium text-green-800">
-                  ✓ Invite Accepted
-                </span>
+            <div className="flex-1">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Create Your First Project</h3>
+              {step1Status === "success" ? (
+                <p className="text-green-700 font-medium">✓ Project created!</p>
+              ) : workspaceStatus === "success" ? (
+                <div>
+                  <p className="text-gray-600 mb-3">Click the button to create your first project</p>
+                  <button
+                    onClick={handleCreateProject}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+                  >
+                    Create Project →
+                  </button>
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">Complete step 1 first</p>
               )}
             </div>
           </div>
         </div>
+
+        {/* Step 2: Complete Tasks */}
+        <div className={`rounded-xl border-2 p-6 transition-all ${
+          taskCount >= 3 ? "border-green-500 bg-green-50" : step1Status === "success" ? "border-blue-300 bg-blue-50" : "border-gray-200 bg-gray-50"
+        }`}>
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              {taskCount >= 3 ? (
+                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">
+                  ✓
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
+                  3
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Complete 3 Tasks</h3>
+              {taskCount >= 3 ? (
+                <p className="text-green-700 font-medium">✓ {taskCount} tasks completed!</p>
+              ) : step1Status === "success" ? (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex-1 bg-gray-200 rounded-full h-3">
+                      <div className="bg-blue-600 h-3 rounded-full transition-all" style={{ width: `${(taskCount / 3) * 100}%` }}></div>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-700">{taskCount}/3</span>
+                  </div>
+                  <p className="text-gray-600 mb-3">Click the button 3 times to complete tasks</p>
+                  <button
+                    onClick={handleCompleteTask}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+                  >
+                    Complete Task ({taskCount}/3) →
+                  </button>
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">Complete step 2 first</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Step 3: Send Invite */}
+        <div className={`rounded-xl border-2 p-6 transition-all ${
+          inviteSentStatus === "success" ? "border-green-500 bg-green-50" : taskCount >= 3 ? "border-blue-300 bg-blue-50" : "border-gray-200 bg-gray-50"
+        }`}>
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              {inviteSentStatus === "success" ? (
+                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">
+                  ✓
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
+                  4
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Invite a Team Member</h3>
+              {inviteSentStatus === "success" ? (
+                <p className="text-green-700 font-medium">✓ Invite sent!</p>
+              ) : taskCount >= 3 ? (
+                <button
+                  onClick={handleInviteSent}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+                >
+                  Send Invite →
+                </button>
+              ) : (
+                <p className="text-gray-500 italic">Complete step 3 first</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Success Message */}
+        {allStepsComplete && (
+          <div className="rounded-xl border-2 border-green-500 bg-gradient-to-r from-green-50 to-blue-50 p-8 text-center">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Congratulations!</h2>
+            <p className="text-lg text-gray-700 mb-4">Your workspace is now fully activated!</p>
+            <div className="flex gap-3 justify-center">
+              <a
+                href="/dashboard"
+                className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg"
+              >
+                View Dashboard →
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
