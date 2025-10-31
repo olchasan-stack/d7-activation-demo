@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
+import { updateWorkspaceStats } from '@/lib/workspace-stats'
 
 export async function POST(req: NextRequest) {
   try {
@@ -84,6 +85,16 @@ export async function POST(req: NextRequest) {
       console.error('Workspace created event failed:', eventResponseText)
       return NextResponse.json({ error: 'Failed to track workspace_created event' }, { status: 500 })
     }
+
+    // Update our in-memory workspace stats
+    updateWorkspaceStats(workspaceId, {
+      workspaceName: name,
+      createdAt: new Date().toISOString(),
+      hasProject: false,
+      taskCount: 0,
+      inviteSent: false,
+      inviteAccepted: false,
+    })
 
     return NextResponse.json({ 
       workspaceId,

@@ -18,26 +18,25 @@ export default function DashboardPage() {
   const [workspaces, setWorkspaces] = useState<WorkspaceStats[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    // Simulate fetching workspace data from PostHog
-    // In production, this would query PostHog's API
-    setTimeout(() => {
-      // For demo purposes, show mock data based on what we've seen
-      const mockData: WorkspaceStats[] = [
-        {
-          workspaceId: 'ws_2001',
-          workspaceName: 'Demo Workspace',
-          createdAt: new Date().toISOString(),
-          hasProject: true,
-          taskCount: 0,
-          isActivated: false,
-          inviteSent: true,
-          inviteAccepted: true,
-        },
-      ]
-      setWorkspaces(mockData)
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/dashboard/stats')
+      const data = await response.json()
+      setWorkspaces(data.workspaces || [])
       setLoading(false)
-    }, 500)
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error)
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchStats()
+    
+    // Refresh every 5 seconds to show real-time updates
+    const interval = setInterval(fetchStats, 5000)
+    
+    return () => clearInterval(interval)
   }, [])
 
   const totalWorkspaces = workspaces.length

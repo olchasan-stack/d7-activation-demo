@@ -13,11 +13,23 @@ export default function OnboardingStepper() {
 
   const handleCreateProject = async () => {
     await captureProjectCreated("ws_2001", "pr_3001")
+    // Update dashboard stats
+    await fetch("/api/track/project", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workspaceId: "ws_2001" }),
+    })
     setStep1Status("success")
   }
 
   const handleCompleteTask = async () => {
     await captureTaskCompleted("ws_2001", "t_4001", "pr_3001")
+    // Update dashboard stats
+    await fetch("/api/track/task", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workspaceId: "ws_2001" }),
+    })
     setStep2Status("success")
   }
 

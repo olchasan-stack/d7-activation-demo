@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { updateWorkspaceStats } from '@/lib/workspace-stats'
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,6 +48,13 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       console.error('PostHog tracking failed:', responseText)
       return NextResponse.json({ error: 'Failed to track event' }, { status: 500 })
+    }
+
+    // Update workspace stats based on event type
+    if (event === 'invite_sent') {
+      updateWorkspaceStats(workspaceId, { inviteSent: true })
+    } else if (event === 'invite_accepted') {
+      updateWorkspaceStats(workspaceId, { inviteAccepted: true })
     }
 
     return NextResponse.json({ ok: true })
