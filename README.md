@@ -57,7 +57,8 @@ Open: http://localhost:3000/
 - `lib/posthog-client.ts` – posthog-js binding (identify, group, capture).
 - `lib/posthog-server.ts` – posthog-node client for API routes.
 - `lib/workspace-stats.ts` – In-memory workspace statistics tracking.
-- `app/page.tsx` – Demo UI with login, set group, and capture buttons.
+- `app/page.tsx` – **Simple onboarding flow** - intuitive step-by-step guide.
+- `components/OnboardingStepper.tsx` – **Interactive stepper** with progress tracking and visual feedback.
 - `app/dashboard/page.tsx` – **D7 Activation Dashboard** with real-time metrics.
 - `app/api/workspace/route.ts` – Create workspace and track workspace_created event.
 - `app/api/track/invite/route.ts` – server capture example for invite events.
