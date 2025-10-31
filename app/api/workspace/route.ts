@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
     }
 
     const workspaceId = uuidv4()
-    const posthogHost = process.env.POSTHOG_HOST || 'https://eu.i.posthog.com'
-    const posthogKey = process.env.POSTHOG_SERVER_KEY
+    const posthogHost = (process.env.POSTHOG_HOST || 'https://eu.i.posthog.com').trim()
+    const posthogKey = process.env.POSTHOG_SERVER_KEY?.trim()
 
     if (!posthogKey) {
       return NextResponse.json({ error: 'PostHog server key not configured' }, { status: 500 })

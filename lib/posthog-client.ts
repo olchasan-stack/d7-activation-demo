@@ -4,20 +4,31 @@ import posthog from 'posthog-js'
 let isInit = false
 
 export function initPostHog() {
-  if (isInit) return
-  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
+  if (isInit) {
+    console.log('PostHog already initialized, skipping')
+    return true
+  }
+  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY?.trim()
   const host = (process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com').trim()
   console.log('initPostHog called:', { key: key ? 'Present' : 'Missing', host })
   if (!key) {
     console.error('PostHog key missing!')
-    return
+    return false
   }
-  posthog.init(key, {
-    api_host: host,
-    capture_pageview: false,
-    loaded: (posthog) => console.log('PostHog initialized:', posthog)
-  })
-  isInit = true
+  try {
+    posthog.init(key, {
+      api_host: host,
+      capture_pageview: false,
+      loaded: () => {
+        console.log('✅ PostHog successfully initialized')
+      }
+    })
+    isInit = true
+    return true
+  } catch (error) {
+    console.error('Error initializing PostHog:', error)
+    return false
+  }
 }
 
 export function identifyUser(userId: string) {
@@ -37,22 +48,41 @@ export function resetAnalytics() {
 }
 
 export function captureProjectCreated(workspaceId: string, projectId: string, templateId?: string) {
-  initPostHog()
-  console.log('captureProjectCreated:', workspaceId, projectId)
-  posthog.capture('project_created', {
-    workspace_id: String(workspaceId),
-    project_id: String(projectId),
-    ...(templateId ? { template_id: String(templateId) } : {})
-  })
+  const initialized = initPostHog()
+  console.log('captureProjectCreated called:', { workspaceId, projectId, templateId, initialized })
+  if (!initialized) {
+    console.error('Cannot capture project_created: PostHog not initialized')
+    return
+  }
+  try {
+    const result = posthog.capture('project_created', {
+      workspace_id: String(workspaceId),
+      project_id: String(projectId),
+      ...(templateId ? { template_id: String(templateId) } : {})
+    })
+    console.log('captureProjectCreated result:', result)
+  } catch (error) {
+    console.error('Error capturing project_created:', error)
+  }
 }
 
 export function captureTaskCompleted(workspaceId: string, taskId: string, projectId: string) {
-  initPostHog()
-  posthog.capture('task_completed', {
-    workspace_id: String(workspaceId),
-    task_id: String(taskId),
-    project_id: String(projectId)
-  })
+  const initialized = initPostHog()
+  console.log('captureTaskCompleted called:', { workspaceId, taskId, projectId, initialized })
+  if (!initialized) {
+    console.error('Cannot capture task_completed: PostHog not initialized')
+    return
+  }
+  try {
+    const result = posthog.capture('task_completed', {
+      workspace_id: String(workspaceId),
+      task_id: String(taskId),
+      project_id: String(projectId)
+    })
+    console.log('captureTaskCompleted result:', result)
+  } catch (error) {
+    console.error('Error capturing task_completed:', error)
+  }
 }
 
 export async function createWorkspace(name: string, userId: string, additionalProps?: Record<string, any>) {

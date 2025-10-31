@@ -9,8 +9,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing event/distinctId/workspaceId' }, { status: 400 })
     }
 
-    const posthogHost = process.env.POSTHOG_HOST || 'https://eu.i.posthog.com'
-    const posthogKey = process.env.POSTHOG_SERVER_KEY
+    const posthogHost = (process.env.POSTHOG_HOST || 'https://eu.i.posthog.com').trim()
+    const posthogKey = process.env.POSTHOG_SERVER_KEY?.trim()
 
     console.log('PostHog tracking request:', { event, distinctId, workspaceId, posthogKey: posthogKey ? 'Present' : 'Missing' })
 

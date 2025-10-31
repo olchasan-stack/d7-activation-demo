@@ -7,14 +7,14 @@ type StepStatus = "idle" | "success"
 
 export default function OnboardingStepper({ 
   userId = "u_1001", 
-  workspaceId: initialWorkspaceId = "ws_2001",
+  workspaceId: initialWorkspaceId = "",
   onWorkspaceCreated
 }: { 
   userId?: string
   workspaceId?: string
   onWorkspaceCreated?: (workspaceId: string) => void
 }) {
-  const [workspaceId, setWorkspaceId] = useState(initialWorkspaceId)
+  const [workspaceId, setWorkspaceId] = useState(initialWorkspaceId || "")
   const [workspaceName, setWorkspaceName] = useState("My Workspace")
   const [workspaceStatus, setWorkspaceStatus] = useState<StepStatus>("idle")
   const [step1Status, setStep1Status] = useState<StepStatus>("idle")
@@ -54,6 +54,10 @@ export default function OnboardingStepper({
   }
 
   const handleCreateProject = async () => {
+    if (!workspaceId) {
+      console.error('Cannot create project without workspaceId')
+      return
+    }
     await captureProjectCreated(workspaceId, "pr_3001")
     // Update dashboard stats
     await fetch("/api/track/project", {
@@ -65,6 +69,10 @@ export default function OnboardingStepper({
   }
 
   const handleCompleteTask = async () => {
+    if (!workspaceId) {
+      console.error('Cannot complete task without workspaceId')
+      return
+    }
     await captureTaskCompleted(workspaceId, `t_${Date.now()}`, "pr_3001")
     // Update dashboard stats
     await fetch("/api/track/task", {
@@ -77,6 +85,10 @@ export default function OnboardingStepper({
   }
 
   const handleInviteSent = async () => {
+    if (!workspaceId) {
+      console.error('Cannot send invite without workspaceId')
+      return
+    }
     const response = await fetch("/api/track/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -92,6 +104,10 @@ export default function OnboardingStepper({
   }
 
   const handleInviteAccepted = async () => {
+    if (!workspaceId) {
+      console.error('Cannot accept invite without workspaceId')
+      return
+    }
     const response = await fetch("/api/track/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

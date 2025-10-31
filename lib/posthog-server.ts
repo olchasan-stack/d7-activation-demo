@@ -1,7 +1,7 @@
 import { PostHog } from 'posthog-node'
 
-const host = process.env.POSTHOG_HOST || 'https://eu.i.posthog.com'
-const key = process.env.POSTHOG_SERVER_KEY || process.env.NEXT_PUBLIC_POSTHOG_KEY || ''
+const host = (process.env.POSTHOG_HOST || 'https://eu.i.posthog.com').trim()
+const key = (process.env.POSTHOG_SERVER_KEY || process.env.NEXT_PUBLIC_POSTHOG_KEY || '').trim()
 
 export const posthogServer = new PostHog(key, { host })
 
