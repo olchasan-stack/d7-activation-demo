@@ -10,7 +10,7 @@ Built a Next.js demo app with PostHog Group Analytics for workspace-level D7 Act
 
 ### Quick Demo (2 minutes)
 
-1. **Open:** https://nextjsposthogsupabasescaffold-nypoovevz.vercel.app
+1. **Open:** https://nextjsposthogsupabasescaffold.vercel.app
 2. **Click "Create Workspace"** → Enter name
 3. **Click "Create Project"**
 4. **Click "Complete Task" 3 times** (see progress bar!)
@@ -88,7 +88,7 @@ Built a Next.js demo app with PostHog Group Analytics for workspace-level D7 Act
 1. ✅ Deployed to Vercel (https://vercel.com/olchasan-stacks-projects/nextjs_posthog_supabase_scaffold)
 2. ✅ Environment variables configured (PostHog keys + hosts)
 3. ✅ Missing dependency fixed (`posthog-node` added)
-4. ✅ Production URL live: https://nextjsposthogsupabasescaffold-nypoovevz.vercel.app
+4. ✅ Production URL live: https://nextjsposthogsupabasescaffold.vercel.app
 
 **Next Steps (Optional):**
 1. Connect PostHog → Supabase for SQL queries
@@ -96,7 +96,7 @@ Built a Next.js demo app with PostHog Group Analytics for workspace-level D7 Act
 3. Add custom domain in Vercel dashboard
 
 **Repository:** https://github.com/olchasan-stack/d7-activation-demo
-**Production:** https://nextjsposthogsupabasescaffold-nypoovevz.vercel.app
+**Production:** https://nextjsposthogsupabasescaffold.vercel.app
 
 ---
 
@@ -123,6 +123,6 @@ Built a Next.js demo app with PostHog Group Analytics for workspace-level D7 Act
 
 **Status:** ✅ Deployed to Production
 **Last Updated:** 2025-10-31
-**Production URL:** https://nextjsposthogsupabasescaffold-nypoovevz.vercel.app
+**Production URL:** https://nextjsposthogsupabasescaffold.vercel.app
 **Local URL:** http://localhost:3000
 
