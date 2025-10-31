@@ -6,7 +6,7 @@ let isInit = false
 export function initPostHog() {
   if (isInit) return
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
-  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com'
+  const host = (process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com').trim()
   console.log('initPostHog called:', { key: key ? 'Present' : 'Missing', host })
   if (!key) {
     console.error('PostHog key missing!')
