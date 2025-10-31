@@ -45,6 +45,7 @@ Open: http://localhost:3000/
 - **Client analytics**: identify user and bind `workspace` group via `AnalyticsProvider`.
 - **Minimal events**: `project_created`, `task_completed` sent from client helpers.
 - **Server events** (API routes): `invite_sent`, `invite_accepted` captured with `posthog-node` and `groups`.
+- **Interactive D7 Dashboard**: Real-time workspace activation metrics at `/dashboard`.
 - **D7 SQL** and **Supabase schema** (see `/sql`): compute D7 on your own DB.
 
 > You can replace the UI with v0.app generated components and just call the helpers.
@@ -55,8 +56,14 @@ Open: http://localhost:3000/
 - `components/AnalyticsProvider.tsx` – Client-only init of PostHog, + expose helpers.
 - `lib/posthog-client.ts` – posthog-js binding (identify, group, capture).
 - `lib/posthog-server.ts` – posthog-node client for API routes.
+- `lib/workspace-stats.ts` – In-memory workspace statistics tracking.
 - `app/page.tsx` – Demo UI with login, set group, and capture buttons.
-- `app/api/track/invite/route.ts` – server capture example.
+- `app/dashboard/page.tsx` – **D7 Activation Dashboard** with real-time metrics.
+- `app/api/workspace/route.ts` – Create workspace and track workspace_created event.
+- `app/api/track/invite/route.ts` – server capture example for invite events.
+- `app/api/track/project/route.ts` – Track project_created events.
+- `app/api/track/task/route.ts` – Track task_completed events.
+- `app/api/dashboard/stats/route.ts` – Dashboard statistics API endpoint.
 - `sql/supabase_schema.sql` – events table + indexes.
 - `sql/d7_metrics.sql` – weekly D7 calculation.
 
