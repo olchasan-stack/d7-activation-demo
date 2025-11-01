@@ -35,7 +35,7 @@ Generate a concise PDR card following the format above. Be specific and actionab
     const { response, traceId, success, error } = await callLLM(
       prompt,
       systemPrompt,
-      { provider: 'openai', model: 'gpt-4-turbo-preview' },
+      { provider: 'openai', model: 'gpt-4o' },
       userId,
       workspaceId
     )

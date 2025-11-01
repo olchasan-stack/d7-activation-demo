@@ -14,7 +14,7 @@ export interface AIConfig {
 
 const defaultConfig: AIConfig = {
   provider: 'openai',
-  model: 'gpt-4-turbo-preview',
+  model: 'gpt-4o-mini',
   temperature: 0.7
 }
 
@@ -95,7 +95,7 @@ export async function callLLMFallback(
   let result = await callLLM(
     prompt,
     systemPrompt,
-    { provider: 'openai', model: 'gpt-4-turbo-preview' },
+    { provider: 'openai', model: 'gpt-4o-mini' },
     userId,
     workspaceId
   )
