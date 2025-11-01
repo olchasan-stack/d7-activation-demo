@@ -45,12 +45,17 @@ Generate a concise PDR card following the format above. Be specific and actionab
     }
     
     // Track AI event
-    await captureServerEvent(
-      'ai_pdr_draft_created',
-      userId,
-      workspaceId,
-      { trace_id: traceId, omtm_score: activationRate }
-    )
+    try {
+      await captureServerEvent(
+        'ai_pdr_draft_created',
+        userId,
+        workspaceId,
+        { trace_id: traceId, omtm_score: activationRate }
+      )
+      console.log('✅ Tracked ai_pdr_draft_created event')
+    } catch (trackError) {
+      console.error('❌ Failed to track ai_pdr_draft_created:', trackError)
+    }
     
     return NextResponse.json({ pdr: response, traceId })
   } catch (error) {
