@@ -10,16 +10,24 @@ export async function captureServerEvent(event: string, distinctId: string, work
   // Generate UUID for idempotency (deduplication in Supabase)
   const eventUuid = uuidv4()
   
-  await posthogServer.capture({
-    event,
-    distinctId: String(distinctId),
-    groups: { workspace: String(workspaceId) },
-    properties: {
-      workspace_id: String(workspaceId),
-      event_uuid: eventUuid,
-      ...properties
-    }
-  })
+  console.log('📊 Capturing server event:', { event, distinctId, workspaceId, hasKey: !!key, host })
+  
+  try {
+    await posthogServer.capture({
+      event,
+      distinctId: String(distinctId),
+      groups: { workspace: String(workspaceId) },
+      properties: {
+        workspace_id: String(workspaceId),
+        event_uuid: eventUuid,
+        ...properties
+      }
+    })
+    console.log('✅ Successfully captured:', event)
+  } catch (error) {
+    console.error('❌ Failed to capture event:', event, error)
+    throw error
+  }
   
   return eventUuid
 }
