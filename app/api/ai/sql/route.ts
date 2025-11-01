@@ -41,7 +41,7 @@ Guidelines:
     const { response, traceId, success, error } = await callLLM(
       naturalLanguageQuery,
       systemPrompt,
-      { provider: 'openai', model: 'gpt-4o' },
+      { provider: 'openai', model: 'gpt-4o-mini' },
       userId,
       workspaceId
     )
