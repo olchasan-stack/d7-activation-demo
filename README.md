@@ -59,6 +59,7 @@ Open: http://localhost:3000/
 - **Idempotency**: UUID-based deduplication prevents duplicate events.
 - **Interactive D7 Dashboard**: Real-time workspace activation metrics at `/dashboard`.
 - **PostHog Dashboards**: Funnel, Retention, Risk metrics configured for workspace-level analysis (see `POSTHOG_DASHBOARDS.md`).
+- **AI-Powered Analytics**: Langfuse tracing, PDR Copilot, SQL generator, anomaly detection (OpenAI/Anthropic).
 - **D7 SQL** and **Supabase schema** (see `/sql`): compute D7 on your own DB.
 
 > You can replace the UI with v0.app generated components and just call the helpers.
@@ -73,15 +74,21 @@ Open: http://localhost:3000/
 - `lib/posthog-client.ts` – posthog-js binding (identify, group, capture).
 - `lib/posthog-server.ts` – posthog-node client for API routes with UUID idempotency.
 - `lib/workspace-stats.ts` – In-memory workspace statistics tracking.
-- `lib/event-schemas.ts` – **Zod schemas for event validation** (ProjectCreated, TaskCompleted, WorkspaceCreated, Invite events).
+- `lib/event-schemas.ts` – **Zod schemas for event validation** (ProjectCreated, TaskCompleted, WorkspaceCreated, Invite events, AI events).
+- `lib/langfuse.ts` – **Langfuse tracing adapter** for AI call observability.
+- `lib/ai-service.ts` – **LLM service** with OpenAI/Anthropic support and fallback.
 - `app/page.tsx` – **Simple onboarding flow** - intuitive step-by-step guide.
 - `components/OnboardingStepper.tsx` – **Interactive stepper** with progress tracking and visual feedback.
 - `app/dashboard/page.tsx` – **D7 Activation Dashboard** with real-time metrics.
+- `components/PDRCopilot.tsx` – **AI-Powered PDR** generation component.
 - `app/api/workspace/route.ts` – Create workspace and track workspace_created event.
 - `app/api/track/invite/route.ts` – server capture example for invite events.
 - `app/api/track/project/route.ts` – Track project_created events.
 - `app/api/track/task/route.ts` – Track task_completed events.
 - `app/api/dashboard/stats/route.ts` – Dashboard statistics API endpoint.
+- `app/api/ai/pdr/route.ts` – **AI PDR Copilot** endpoint.
+- `app/api/ai/sql/route.ts` – **AI SQL generator** endpoint.
+- `app/api/ai/anomaly/route.ts` – **AI anomaly detector** endpoint.
 - `sql/supabase_schema.sql` – events table + indexes.
 - `sql/d7_metrics.sql` – weekly D7 calculation.
 - `sql/add_uuid_idempotency.sql` – **UUID-based deduplication** (unique index + safe insert function).
