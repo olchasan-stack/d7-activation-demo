@@ -102,7 +102,9 @@ export default function DashboardPage() {
         </div>
 
         {/* AI PDR Copilot */}
-        <PDRCopilot userId="u_1001" workspaceId="demo" />
+        {workspaces.length > 0 && (
+          <PDRCopilot userId="u_1001" workspaceId={workspaces[0].workspaceId} />
+        )}
 
         {/* D7 Activation Criteria Info */}
         <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6 mb-8">
