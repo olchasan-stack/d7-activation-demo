@@ -9,9 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
     "@supabase/supabase-js": "^2.78.0",
     "@types/uuid": "^10.0.0",
+    "langfuse": "^3.38.6",
     "next": "^14.0.0",
+    "openai": "^6.7.0",
     "posthog-js": "^1.283.0",
     "posthog-node": "^5.10.4",
     "react": "^18.0.0",

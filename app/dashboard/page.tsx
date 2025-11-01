@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import PDRCopilot from '@/components/PDRCopilot'
 
 interface WorkspaceStats {
   workspaceId: string
@@ -99,6 +100,9 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* AI PDR Copilot */}
+        <PDRCopilot userId="u_1001" workspaceId="demo" />
 
         {/* D7 Activation Criteria Info */}
         <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6 mb-8">
