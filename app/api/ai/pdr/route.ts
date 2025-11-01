@@ -4,8 +4,10 @@ import { captureServerEvent } from '@/lib/posthog-server'
 import { getAllWorkspacesFromSupabase } from '@/lib/supabase'
 
 export async function POST(req: NextRequest) {
+  console.log('🎯 PDR API called')
   try {
     const { userId, workspaceId } = await req.json()
+    console.log('📥 Request data:', { userId, workspaceId })
     
     if (!userId || !workspaceId) {
       return NextResponse.json({ error: 'Missing userId or workspaceId' }, { status: 400 })
