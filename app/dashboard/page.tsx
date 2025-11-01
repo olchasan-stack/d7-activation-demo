@@ -13,6 +13,7 @@ interface WorkspaceStats {
   isActivated: boolean
   inviteSent: boolean
   inviteAccepted: boolean
+  distinctId?: string
 }
 
 export default function DashboardPage() {
@@ -102,8 +103,8 @@ export default function DashboardPage() {
         </div>
 
         {/* AI PDR Copilot */}
-        {workspaces.length > 0 && (
-          <PDRCopilot userId="u_1001" workspaceId={workspaces[0].workspaceId} />
+        {workspaces.length > 0 && workspaces[0].distinctId && (
+          <PDRCopilot userId={workspaces[0].distinctId} workspaceId={workspaces[0].workspaceId} />
         )}
 
         {/* D7 Activation Criteria Info */}

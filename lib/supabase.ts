@@ -20,6 +20,7 @@ export interface WorkspaceStats {
   isActivated: boolean
   inviteSent: boolean
   inviteAccepted: boolean
+  distinctId?: string
 }
 
 export async function getAllWorkspacesFromSupabase(): Promise<WorkspaceStats[]> {
@@ -32,7 +33,7 @@ export async function getAllWorkspacesFromSupabase(): Promise<WorkspaceStats[]> 
     // Get all workspace_created events to get workspace list
     const { data: workspaceEvents, error: workspaceError } = await supabase
       .from('events_d7_new')
-      .select('properties, timestamp')
+      .select('properties, timestamp, distinct_id')
       .eq('event', 'workspace_created')
       .order('timestamp', { ascending: true })
 
@@ -73,6 +74,7 @@ export async function getAllWorkspacesFromSupabase(): Promise<WorkspaceStats[]> 
 
         const workspaceName = wsEvent.properties?.workspace_name as string || 'Untitled Workspace'
         const createdAt = wsEvent.timestamp
+        const distinctId = wsEvent.distinct_id as string | undefined
 
         // Calculate stats
         const hasProject = allEvents?.some(e => e.event === 'project_created') || false
@@ -89,12 +91,13 @@ export async function getAllWorkspacesFromSupabase(): Promise<WorkspaceStats[]> 
           taskCount,
           isActivated,
           inviteSent,
-          inviteAccepted
+          inviteAccepted,
+          distinctId
         }
       })
     )
 
-    return workspaceStats.filter((ws): ws is WorkspaceStats => ws !== null)
+    return workspaceStats.filter((ws) => ws !== null) as WorkspaceStats[]
   } catch (error) {
     console.error('Error in getAllWorkspacesFromSupabase:', error)
     return []
