@@ -1,5 +1,6 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { analytics } from '@/lib/analytics'
 
 interface PDRCopilotProps {
   userId: string
@@ -10,6 +11,14 @@ export default function PDRCopilot({ userId, workspaceId }: PDRCopilotProps) {
   const [loading, setLoading] = useState(false)
   const [pdr, setPdr] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  
+  // Bind to workspace group when component mounts
+  useEffect(() => {
+    if (userId && workspaceId) {
+      analytics.identify(userId)
+      analytics.group('workspace', workspaceId)
+    }
+  }, [userId, workspaceId])
   
   const generatePDR = async () => {
     setLoading(true)
