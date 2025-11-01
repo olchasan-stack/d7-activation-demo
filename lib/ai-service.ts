@@ -3,8 +3,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { traceLLMCall, createTraceId } from './langfuse'
 import { v4 as uuidv4 } from 'uuid'
 
-const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null
-const anthropic = process.env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }) : null
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY.trim() }) : null
+const anthropic = process.env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY.trim() }) : null
 
 export interface AIConfig {
   provider: 'openai' | 'anthropic'
