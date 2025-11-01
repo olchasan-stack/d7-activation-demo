@@ -43,6 +43,7 @@ export async function callLLM(
     
     if (config.provider === 'openai') {
       if (!openai) {
+        console.error('❌ OpenAI client not initialized')
         throw new Error('OpenAI API key not configured')
       }
       const completion = await openai.chat.completions.create({
@@ -79,6 +80,7 @@ export async function callLLM(
     return { response, traceId, success: true }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error('❌ LLM call failed:', errorMessage)
     await trace?.score({ name: 'success', value: 0 })
     
     return { response: '', traceId, success: false, error: errorMessage }

@@ -238,10 +238,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Footer Note */}
-        <div className="mt-8 text-center text-sm text-gray-600">
+        <div className="mt-8 text-center text-sm text-gray-600 space-y-1">
           <p>
             💡 This is a demo dashboard. In production, connect to PostHog's Query API to fetch real-time event data.
           </p>
+          {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA && (
+            <p className="text-xs text-gray-500">
+              Build: {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 7)}
+            </p>
+          )}
         </div>
       </div>
     </main>
