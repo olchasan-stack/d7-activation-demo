@@ -58,6 +58,7 @@ Open: http://localhost:3000/
 - **Event validation**: Zod schemas for type-safe event contracts.
 - **Idempotency**: UUID-based deduplication prevents duplicate events.
 - **Interactive D7 Dashboard**: Real-time workspace activation metrics at `/dashboard`.
+- **PostHog Dashboards**: Funnel, Retention, Risk metrics configured for workspace-level analysis (see `POSTHOG_DASHBOARDS.md`).
 - **D7 SQL** and **Supabase schema** (see `/sql`): compute D7 on your own DB.
 
 > You can replace the UI with v0.app generated components and just call the helpers.
@@ -84,6 +85,7 @@ Open: http://localhost:3000/
 - `sql/supabase_schema.sql` – events table + indexes.
 - `sql/d7_metrics.sql` – weekly D7 calculation.
 - `sql/add_uuid_idempotency.sql` – **UUID-based deduplication** (unique index + safe insert function).
+- `POSTHOG_DASHBOARDS.md` – Complete guide for setting up Funnel, Retention, and Risk dashboards in PostHog.
 
 ---
 ## 4) Supabase ingestion (two options)
@@ -120,5 +122,6 @@ Server-side events include `event_uuid` in properties for idempotency:
 - [ ] Server events (invite) include `groups: { workspace }`.
 - [ ] Timezone/clock sane (UTC preferred).
 - [ ] SQL returns plausible D7 for a known test cohort.
+- [ ] PostHog Dashboards show correct "Unique workspaces" aggregation (see `POSTHOG_DASHBOARDS.md`).
 
 Happy shipping.
