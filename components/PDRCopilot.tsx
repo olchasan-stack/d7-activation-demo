@@ -26,12 +26,16 @@ export default function PDRCopilot({ userId, workspaceId }: PDRCopilotProps) {
       const data = await response.json()
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate PDR')
+        const errorMsg = data.details ? `${data.error}: ${data.details}` : (data.error || 'Failed to generate PDR')
+        console.error('PDR API error:', data)
+        throw new Error(errorMsg)
       }
       
       setPdr(data.pdr)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred')
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error occurred'
+      setError(errorMsg)
+      console.error('PDR generation error:', err)
     } finally {
       setLoading(false)
     }

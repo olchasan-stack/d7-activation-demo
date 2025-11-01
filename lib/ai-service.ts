@@ -81,6 +81,16 @@ export async function callLLM(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     console.error('❌ LLM call failed:', errorMessage)
+    
+    // Log the failure to Langfuse trace
+    trace?.generation({
+      model: config.model,
+      modelParameters: { temperature: config.temperature ?? 0.7 },
+      input: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
+      output: [{ role: 'assistant', content: `ERROR: ${errorMessage}` }],
+      metadata: { error: errorMessage, error_type: error instanceof Error ? error.constructor.name : 'Unknown' }
+    })
+    
     await trace?.score({ name: 'success', value: 0 })
     
     return { response: '', traceId, success: false, error: errorMessage }
