@@ -45,9 +45,18 @@ export async function getAllWorkspacesFromSupabase(): Promise<WorkspaceStats[]> 
       return []
     }
 
+    // Deduplicate by workspace_id (PostHog Destination might create duplicates)
+    const uniqueWorkspaces = new Map<string, typeof workspaceEvents[0]>()
+    for (const wsEvent of workspaceEvents) {
+      const workspaceId = wsEvent.properties?.workspace_id as string
+      if (workspaceId && !uniqueWorkspaces.has(workspaceId)) {
+        uniqueWorkspaces.set(workspaceId, wsEvent)
+      }
+    }
+
     // For each workspace, get all events and calculate stats
     const workspaceStats = await Promise.all(
-      workspaceEvents.map(async (wsEvent) => {
+      Array.from(uniqueWorkspaces.values()).map(async (wsEvent) => {
         const workspaceId = wsEvent.properties?.workspace_id as string
         if (!workspaceId) return null
 

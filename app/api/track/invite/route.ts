@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { v4 as uuidv4 } from 'uuid'
 import { updateWorkspaceStats } from '@/lib/workspace-stats'
+import { InviteEventProperties } from '@/lib/event-schemas'
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,14 +21,26 @@ export async function POST(req: NextRequest) {
     }
 
     // Track event directly via PostHog API
+    const eventUuid = uuidv4() // Generate UUID for idempotency
+    const eventProperties = {
+      workspace_id: workspaceId,
+      event_uuid: eventUuid,
+      ...properties
+    }
+    
+    // Validate properties match schema
+    try {
+      InviteEventProperties.parse(eventProperties)
+    } catch (error) {
+      console.error('❌ InviteEventProperties validation failed:', error)
+      return NextResponse.json({ error: 'Invalid invite event properties' }, { status: 400 })
+    }
+
     const trackingData = {
       api_key: posthogKey,
       event,
       distinct_id: distinctId,
-      properties: {
-        workspace_id: workspaceId,
-        ...properties
-      },
+      properties: eventProperties,
       groups: {
         workspace: workspaceId
       }

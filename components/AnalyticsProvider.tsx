@@ -1,11 +1,11 @@
 'use client'
 
 import { ReactNode, useEffect } from 'react'
-import { initPostHog } from '@/lib/posthog-client'
+import { analytics } from '@/lib/analytics'
 
 export default function AnalyticsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
-    initPostHog()
+    analytics.init()
   }, [])
   return <>{children}</>
 }

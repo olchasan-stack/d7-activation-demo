@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { updateWorkspaceStats } from '@/lib/workspace-stats'
+import { WorkspaceCreatedProperties } from '@/lib/event-schemas'
 
 export async function POST(req: NextRequest) {
   try {
@@ -54,15 +55,27 @@ export async function POST(req: NextRequest) {
     }
 
     // Step 2: Track the workspace_created event
+    const workspaceEventUuid = uuidv4() // Generate UUID for idempotency
+    const workspaceProperties = {
+      workspace_id: workspaceId,
+      workspace_name: name,
+      event_uuid: workspaceEventUuid,
+      ...properties
+    }
+    
+    // Validate properties match schema
+    try {
+      WorkspaceCreatedProperties.parse(workspaceProperties)
+    } catch (error) {
+      console.error('❌ WorkspaceCreatedProperties validation failed:', error)
+      return NextResponse.json({ error: 'Invalid workspace properties' }, { status: 400 })
+    }
+    
     const workspaceCreatedData = {
       api_key: posthogKey,
       event: 'workspace_created',
       distinct_id: userId,
-      properties: {
-        workspace_id: workspaceId,
-        workspace_name: name,
-        ...properties
-      },
+      properties: workspaceProperties,
       groups: {
         workspace: workspaceId
       }

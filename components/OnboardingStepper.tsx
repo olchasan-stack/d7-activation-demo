@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { captureProjectCreated, captureTaskCompleted, bindWorkspace } from "@/lib/posthog-client"
+import { analytics } from "@/lib/analytics"
 
 type StepStatus = "idle" | "success"
 
@@ -39,8 +39,8 @@ export default function OnboardingStepper({
       if (response.ok) {
         console.log('✅ Workspace created successfully:', result)
         setWorkspaceId(result.workspaceId)
-        // Bind workspace to PostHog client side
-        bindWorkspace(result.workspaceId)
+        // Bind workspace to analytics client side
+        analytics.group('workspace', result.workspaceId)
         if (onWorkspaceCreated) {
           onWorkspaceCreated(result.workspaceId)
         }
@@ -58,7 +58,7 @@ export default function OnboardingStepper({
       console.error('Cannot create project without workspaceId')
       return
     }
-    await captureProjectCreated(workspaceId, "pr_3001")
+    analytics.captureProjectCreated(workspaceId, "pr_3001")
     // Update dashboard stats
     await fetch("/api/track/project", {
       method: "POST",
@@ -73,7 +73,7 @@ export default function OnboardingStepper({
       console.error('Cannot complete task without workspaceId')
       return
     }
-    await captureTaskCompleted(workspaceId, `t_${Date.now()}`, "pr_3001")
+    analytics.captureTaskCompleted(workspaceId, `t_${Date.now()}`, "pr_3001")
     // Update dashboard stats
     await fetch("/api/track/task", {
       method: "POST",

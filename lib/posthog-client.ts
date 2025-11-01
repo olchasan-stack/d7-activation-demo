@@ -1,5 +1,6 @@
 'use client'
 import posthog from 'posthog-js'
+import { ProjectCreatedProperties, TaskCompletedProperties } from './event-schemas'
 
 let isInit = false
 
@@ -54,12 +55,23 @@ export function captureProjectCreated(workspaceId: string, projectId: string, te
     console.error('Cannot capture project_created: PostHog not initialized')
     return
   }
+  
+  // Validate properties match schema
+  const properties = {
+    workspace_id: String(workspaceId),
+    project_id: String(projectId),
+    ...(templateId ? { template_id: String(templateId) } : {})
+  }
+  
   try {
-    const result = posthog.capture('project_created', {
-      workspace_id: String(workspaceId),
-      project_id: String(projectId),
-      ...(templateId ? { template_id: String(templateId) } : {})
-    })
+    ProjectCreatedProperties.parse(properties)
+  } catch (error) {
+    console.error('❌ ProjectCreatedProperties validation failed:', error)
+    return
+  }
+  
+  try {
+    const result = posthog.capture('project_created', properties)
     console.log('captureProjectCreated result:', result)
   } catch (error) {
     console.error('Error capturing project_created:', error)
@@ -73,12 +85,23 @@ export function captureTaskCompleted(workspaceId: string, taskId: string, projec
     console.error('Cannot capture task_completed: PostHog not initialized')
     return
   }
+  
+  // Validate properties match schema
+  const properties = {
+    workspace_id: String(workspaceId),
+    task_id: String(taskId),
+    project_id: String(projectId)
+  }
+  
   try {
-    const result = posthog.capture('task_completed', {
-      workspace_id: String(workspaceId),
-      task_id: String(taskId),
-      project_id: String(projectId)
-    })
+    TaskCompletedProperties.parse(properties)
+  } catch (error) {
+    console.error('❌ TaskCompletedProperties validation failed:', error)
+    return
+  }
+  
+  try {
+    const result = posthog.capture('task_completed', properties)
     console.log('captureTaskCompleted result:', result)
   } catch (error) {
     console.error('Error capturing task_completed:', error)

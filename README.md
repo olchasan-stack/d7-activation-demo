@@ -19,6 +19,11 @@ npm i posthog-js posthog-node
 Copy the `app`, `components`, `lib`, and `app/api` directories into your project.
 Also copy `env.example` → `.env.local` and set your keys.
 
+### Install dependencies
+```bash
+npm i posthog-js posthog-node zod
+```
+
 ### Environment
 `.env.local`
 ```
@@ -27,11 +32,15 @@ NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 POSTHOG_SERVER_KEY=phc_XXXXXXXXXXXXXXXXXXXX
 POSTHOG_HOST=https://eu.i.posthog.com
 
+# Analytics provider (set to 'noop' to disable for GDPR/testing)
+NEXT_PUBLIC_ANALYTICS_PROVIDER=
+
 # Optional if you use the Supabase Edge Function webhook route
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
-> Use EU host if your project is in the EU.
+> Use EU host if your project is in the EU.  
+> Set `NEXT_PUBLIC_ANALYTICS_PROVIDER=noop` to disable analytics (useful for GDPR compliance or testing).
 
 ### Run
 ```bash
@@ -42,9 +51,12 @@ Open: http://localhost:3000/
 ---
 ## 2) What you get in the demo
 
+- **Tool-agnostic analytics**: Adapter pattern with noop support for GDPR/testing.
 - **Client analytics**: identify user and bind `workspace` group via `AnalyticsProvider`.
 - **Minimal events**: `project_created`, `task_completed` sent from client helpers.
 - **Server events** (API routes): `invite_sent`, `invite_accepted` captured with `posthog-node` and `groups`.
+- **Event validation**: Zod schemas for type-safe event contracts.
+- **Idempotency**: UUID-based deduplication prevents duplicate events.
 - **Interactive D7 Dashboard**: Real-time workspace activation metrics at `/dashboard`.
 - **D7 SQL** and **Supabase schema** (see `/sql`): compute D7 on your own DB.
 
@@ -53,10 +65,14 @@ Open: http://localhost:3000/
 ---
 ## 3) Files
 
-- `components/AnalyticsProvider.tsx` – Client-only init of PostHog, + expose helpers.
+- `components/AnalyticsProvider.tsx` – Client-only init of analytics adapter.
+- `lib/analytics.ts` – **Tool-agnostic analytics factory** (noop vs PostHog).
+- `lib/analytics-noop.ts` – Noop adapter (when analytics disabled).
+- `lib/analytics-posthog.ts` – PostHog adapter (wraps posthog-js).
 - `lib/posthog-client.ts` – posthog-js binding (identify, group, capture).
-- `lib/posthog-server.ts` – posthog-node client for API routes.
+- `lib/posthog-server.ts` – posthog-node client for API routes with UUID idempotency.
 - `lib/workspace-stats.ts` – In-memory workspace statistics tracking.
+- `lib/event-schemas.ts` – **Zod schemas for event validation** (ProjectCreated, TaskCompleted, WorkspaceCreated, Invite events).
 - `app/page.tsx` – **Simple onboarding flow** - intuitive step-by-step guide.
 - `components/OnboardingStepper.tsx` – **Interactive stepper** with progress tracking and visual feedback.
 - `app/dashboard/page.tsx` – **D7 Activation Dashboard** with real-time metrics.
@@ -67,6 +83,7 @@ Open: http://localhost:3000/
 - `app/api/dashboard/stats/route.ts` – Dashboard statistics API endpoint.
 - `sql/supabase_schema.sql` – events table + indexes.
 - `sql/d7_metrics.sql` – weekly D7 calculation.
+- `sql/add_uuid_idempotency.sql` – **UUID-based deduplication** (unique index + safe insert function).
 
 ---
 ## 4) Supabase ingestion (two options)
@@ -81,8 +98,22 @@ Open: http://localhost:3000/
 
 Once data lands in `public.events`, run `sql/d7_metrics.sql` to compute D7.
 
+**Tip**: Run `sql/add_uuid_idempotency.sql` to prevent duplicate events when syncing from PostHog.
+
 ---
-## 5) QA Checklist (15 minutes)
+## 5) Advanced Features
+
+### GDPR Compliance / Testing
+Set `NEXT_PUBLIC_ANALYTICS_PROVIDER=noop` to disable all analytics tracking without changing code.
+
+### Event Deduplication
+Server-side events include `event_uuid` in properties for idempotency:
+- Prevents duplicate events from webhook replays or sync retries
+- Safe to retry failed API calls
+- Unique index in Supabase automatically skips duplicates
+
+---
+## 6) QA Checklist (15 minutes)
 
 - [ ] After login, PostHog shows a **Group: workspace** with your ID.
 - [ ] Client events include `workspace_id` and appear under the workspace group.

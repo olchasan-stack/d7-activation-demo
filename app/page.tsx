@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { identifyUser } from '@/lib/posthog-client'
+import { analytics } from '@/lib/analytics'
 import OnboardingStepper from '@/components/OnboardingStepper'
 
 export default function Page() {
@@ -10,7 +10,7 @@ export default function Page() {
 
   useEffect(() => {
     // Auto-identify user on mount
-    identifyUser(userId)
+    analytics.identify(userId)
   }, [userId])
 
   return (
@@ -80,7 +80,7 @@ export default function Page() {
             </div>
             <p className="text-xs text-gray-600">
               Change this to simulate different users. The user will be auto-identified in PostHog.
-            </p>
+      </p>
           </div>
         </details>
       </div>
