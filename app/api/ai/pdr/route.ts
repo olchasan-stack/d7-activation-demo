@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { callLLM } from '@/lib/ai-service'
 import { getAllWorkspacesFromSupabase } from '@/lib/supabase'
+import { evaluatePDRQuality } from '@/lib/ai-eval-service'
 
 export async function POST(req: NextRequest) {
   console.log('🎯 PDR API called')
@@ -45,6 +46,19 @@ Generate a concise PDR card following the format above. Be specific and actionab
     if (!success) {
       return NextResponse.json({ error: 'LLM call failed', details: error }, { status: 500 })
     }
+    
+    // Evaluate PDR quality (optional, controlled by ENABLE_AI_EVALUATION env var)
+    const evalResult = await evaluatePDRQuality(
+      response,
+      { activationRate, total, activated },
+      {
+        enabled: true,
+        operation: 'pdr',
+        userId,
+        workspaceId,
+        traceId
+      }
+    )
     
     // Track AI event via direct PostHog API
     try {

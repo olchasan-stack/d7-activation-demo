@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { callLLM } from '@/lib/ai-service'
 import { getAllWorkspacesFromSupabase } from '@/lib/supabase'
+import { evaluateAnomalyQuality } from '@/lib/ai-eval-service'
 
 const DEFAULT_THRESHOLD = 0.5 // 50% activation rate
 
@@ -65,6 +66,19 @@ Analyze and provide:
     if (!success) {
       return NextResponse.json({ error: 'LLM call failed', details: error }, { status: 500 })
     }
+    
+    // Evaluate anomaly quality (optional, controlled by ENABLE_AI_EVALUATION env var)
+    const evalResult = await evaluateAnomalyQuality(
+      response,
+      { activationRate, threshold },
+      {
+        enabled: true,
+        operation: 'anomaly',
+        userId,
+        workspaceId,
+        traceId
+      }
+    )
     
     // Track AI event via direct PostHog API
     try {

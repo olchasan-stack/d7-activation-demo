@@ -38,9 +38,24 @@ NEXT_PUBLIC_ANALYTICS_PROVIDER=
 # Optional if you use the Supabase Edge Function webhook route
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
+
+# Langfuse (AI tracing & eval platform)
+LANGFUSE_PUBLIC_KEY=
+LANGFUSE_SECRET_KEY=
+LANGFUSE_HOST=https://cloud.langfuse.com
+
+# OpenAI (for AI features)
+OPENAI_API_KEY=
+
+# Anthropic (optional fallback for AI features)
+ANTHROPIC_API_KEY=
+
+# AI Evaluation (set to 'true' to enable LLM-as-a-Judge quality checks)
+ENABLE_AI_EVALUATION=false
 ```
 > Use EU host if your project is in the EU.  
-> Set `NEXT_PUBLIC_ANALYTICS_PROVIDER=noop` to disable analytics (useful for GDPR compliance or testing).
+> Set `NEXT_PUBLIC_ANALYTICS_PROVIDER=noop` to disable analytics (useful for GDPR compliance or testing).  
+> Set `ENABLE_AI_EVALUATION=true` to enable LLM-as-a-Judge quality evaluation (adds ~1 LLM call per AI request).
 
 ### Run
 ```bash
@@ -60,6 +75,7 @@ Open: http://localhost:3000/
 - **Interactive D7 Dashboard**: Real-time workspace activation metrics at `/dashboard`.
 - **PostHog Dashboards**: Funnel, Retention, Risk metrics configured for workspace-level analysis (see `POSTHOG_DASHBOARDS.md`).
 - **AI-Powered Analytics**: Langfuse tracing, PDR Copilot, SQL generator, anomaly detection (OpenAI/Anthropic).
+- **AI Quality Evaluation**: LLM-as-a-Judge quality checks with Langfuse scoring (optional, enable via `ENABLE_AI_EVALUATION=true`).
 - **D7 SQL** and **Supabase schema** (see `/sql`): compute D7 on your own DB.
 
 > You can replace the UI with v0.app generated components and just call the helpers.
@@ -77,6 +93,7 @@ Open: http://localhost:3000/
 - `lib/event-schemas.ts` – **Zod schemas for event validation** (ProjectCreated, TaskCompleted, WorkspaceCreated, Invite events, AI events).
 - `lib/langfuse.ts` – **Langfuse tracing adapter** for AI call observability.
 - `lib/ai-service.ts` – **LLM service** with OpenAI/Anthropic support and fallback.
+- `lib/ai-eval-service.ts` – **AI quality evaluation** using LLM-as-a-Judge (PDR, SQL, Anomaly checkers).
 - `app/page.tsx` – **Simple onboarding flow** - intuitive step-by-step guide.
 - `components/OnboardingStepper.tsx` – **Interactive stepper** with progress tracking and visual feedback.
 - `app/dashboard/page.tsx` – **D7 Activation Dashboard** with real-time metrics.
@@ -126,6 +143,14 @@ All server-side events use direct `fetch()` calls to PostHog's `/capture/` API i
 - **Immediate delivery** in serverless environments (Vercel, etc.)
 - No need to flush or wait for batch completion
 - Consistent across all routes: workspace creation, invites, AI events
+
+### AI Quality Evaluation (Optional)
+Enable LLM-as-a-Judge evaluation by setting `ENABLE_AI_EVALUATION=true` in your environment:
+- **PDR Evaluation**: Checks format validity, data-driven insights, and actionability (0-1 scores)
+- **SQL Evaluation**: Validates syntax, safety, and relevance to user intent
+- **Anomaly Evaluation**: Assesses root cause quality and data-driven analysis
+- **Langfuse Dashboard**: View eval scores and track quality over time
+- **Cost**: Adds ~1 LLM API call per AI feature request (uses `gpt-4o-mini` for cost-efficiency)
 
 ---
 ## 6) QA Checklist (15 minutes)

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { callLLM } from '@/lib/ai-service'
+import { evaluateSQLQuality } from '@/lib/ai-eval-service'
 
 const SQL_SCHEMA = `
 Database: PostgreSQL (Supabase)
@@ -61,6 +62,19 @@ Guidelines:
         { status: 400 }
       )
     }
+    
+    // Evaluate SQL quality (optional, controlled by ENABLE_AI_EVALUATION env var)
+    const evalResult = await evaluateSQLQuality(
+      response,
+      naturalLanguageQuery,
+      {
+        enabled: true,
+        operation: 'sql',
+        userId,
+        workspaceId,
+        traceId
+      }
+    )
     
     // Track AI event via direct PostHog API
     try {
