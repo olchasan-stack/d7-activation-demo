@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import PDRCopilot from '@/components/PDRCopilot'
+import SQLGenerator from '@/components/SQLGenerator'
+import AnomalyDetector from '@/components/AnomalyDetector'
 
 interface WorkspaceStats {
   workspaceId: string
@@ -102,9 +104,13 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* AI PDR Copilot */}
+        {/* AI Features */}
         {workspaces.length > 0 && workspaces[0].distinctId && (
-          <PDRCopilot userId={workspaces[0].distinctId} workspaceId={workspaces[0].workspaceId} />
+          <>
+            <PDRCopilot userId={workspaces[0].distinctId} workspaceId={workspaces[0].workspaceId} />
+            <SQLGenerator userId={workspaces[0].distinctId} workspaceId={workspaces[0].workspaceId} />
+            <AnomalyDetector userId={workspaces[0].distinctId} workspaceId={workspaces[0].workspaceId} />
+          </>
         )}
 
         {/* D7 Activation Criteria Info */}
