@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { v4 as uuidv4 } from 'uuid'
 import { callLLM } from '@/lib/ai-service'
-import { captureServerEvent } from '@/lib/posthog-server'
 
 const SQL_SCHEMA = `
 Database: PostgreSQL (Supabase)
@@ -62,16 +62,38 @@ Guidelines:
       )
     }
     
-    await captureServerEvent(
-      'ai_sql_generated',
-      userId,
-      workspaceId,
-      { 
-        trace_id: traceId, 
-        query_type: queryType as 'd7_metrics' | 'cohort_analysis' | 'custom',
-        query_validated: !hasDangerousKeyword 
+    // Track AI event via direct PostHog API
+    try {
+      const posthogHost = (process.env.POSTHOG_HOST || 'https://eu.i.posthog.com').trim()
+      const posthogKey = process.env.POSTHOG_SERVER_KEY?.trim()
+      
+      if (posthogKey) {
+        const eventUuid = uuidv4()
+        const trackingData = {
+          api_key: posthogKey,
+          event: 'ai_sql_generated',
+          distinct_id: userId,
+          properties: {
+            workspace_id: workspaceId,
+            event_uuid: eventUuid,
+            trace_id: traceId,
+            query_type: queryType as 'd7_metrics' | 'cohort_analysis' | 'custom',
+            query_validated: !hasDangerousKeyword
+          },
+          groups: {
+            workspace: workspaceId
+          }
+        }
+        
+        await fetch(`${posthogHost}/capture/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(trackingData)
+        })
       }
-    )
+    } catch (trackError) {
+      console.error('❌ Failed to track ai_sql_generated:', trackError)
+    }
     
     return NextResponse.json({ 
       sql: response, 

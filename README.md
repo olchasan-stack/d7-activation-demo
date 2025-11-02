@@ -54,7 +54,7 @@ Open: http://localhost:3000/
 - **Tool-agnostic analytics**: Adapter pattern with noop support for GDPR/testing.
 - **Client analytics**: identify user and bind `workspace` group via `AnalyticsProvider`.
 - **Minimal events**: `project_created`, `task_completed` sent from client helpers.
-- **Server events** (API routes): `invite_sent`, `invite_accepted` captured with `posthog-node` and `groups`.
+- **Server events** (API routes): All events (`invite_sent`, `invite_accepted`, AI events) sent via direct PostHog API with `fetch()` for reliable delivery in serverless environments.
 - **Event validation**: Zod schemas for type-safe event contracts.
 - **Idempotency**: UUID-based deduplication prevents duplicate events.
 - **Interactive D7 Dashboard**: Real-time workspace activation metrics at `/dashboard`.
@@ -72,7 +72,7 @@ Open: http://localhost:3000/
 - `lib/analytics-noop.ts` – Noop adapter (when analytics disabled).
 - `lib/analytics-posthog.ts` – PostHog adapter (wraps posthog-js).
 - `lib/posthog-client.ts` – posthog-js binding (identify, group, capture).
-- `lib/posthog-server.ts` – posthog-node client for API routes with UUID idempotency.
+- `lib/posthog-server.ts` – PostHog Node.js client (legacy; all routes now use direct API calls).
 - `lib/workspace-stats.ts` – In-memory workspace statistics tracking.
 - `lib/event-schemas.ts` – **Zod schemas for event validation** (ProjectCreated, TaskCompleted, WorkspaceCreated, Invite events, AI events).
 - `lib/langfuse.ts` – **Langfuse tracing adapter** for AI call observability.
@@ -120,6 +120,12 @@ Server-side events include `event_uuid` in properties for idempotency:
 - Prevents duplicate events from webhook replays or sync retries
 - Safe to retry failed API calls
 - Unique index in Supabase automatically skips duplicates
+
+### Reliable Server Event Delivery
+All server-side events use direct `fetch()` calls to PostHog's `/capture/` API instead of the batched `posthog-node` client:
+- **Immediate delivery** in serverless environments (Vercel, etc.)
+- No need to flush or wait for batch completion
+- Consistent across all routes: workspace creation, invites, AI events
 
 ---
 ## 6) QA Checklist (15 minutes)

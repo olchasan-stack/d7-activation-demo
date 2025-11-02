@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { v4 as uuidv4 } from 'uuid'
 import { callLLM } from '@/lib/ai-service'
-import { captureServerEvent } from '@/lib/posthog-server'
 import { getAllWorkspacesFromSupabase } from '@/lib/supabase'
 
 const DEFAULT_THRESHOLD = 0.5 // 50% activation rate
@@ -66,18 +66,40 @@ Analyze and provide:
       return NextResponse.json({ error: 'LLM call failed', details: error }, { status: 500 })
     }
     
-    await captureServerEvent(
-      'ai_anomaly_alerted',
-      userId,
-      workspaceId,
-      {
-        trace_id: traceId,
-        metric: 'd7_activation',
-        threshold,
-        actual_value: activationRate,
-        suggested_action: response
+    // Track AI event via direct PostHog API
+    try {
+      const posthogHost = (process.env.POSTHOG_HOST || 'https://eu.i.posthog.com').trim()
+      const posthogKey = process.env.POSTHOG_SERVER_KEY?.trim()
+      
+      if (posthogKey) {
+        const eventUuid = uuidv4()
+        const trackingData = {
+          api_key: posthogKey,
+          event: 'ai_anomaly_alerted',
+          distinct_id: userId,
+          properties: {
+            workspace_id: workspaceId,
+            event_uuid: eventUuid,
+            trace_id: traceId,
+            metric: 'd7_activation',
+            threshold,
+            actual_value: activationRate,
+            suggested_action: response
+          },
+          groups: {
+            workspace: workspaceId
+          }
+        }
+        
+        await fetch(`${posthogHost}/capture/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(trackingData)
+        })
       }
-    )
+    } catch (trackError) {
+      console.error('❌ Failed to track ai_anomaly_alerted:', trackError)
+    }
     
     return NextResponse.json({ 
       alert: true, 
