@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { v4 as uuidv4 } from 'uuid'
 import { callLLM } from '@/lib/ai-service'
-import { captureServerEvent } from '@/lib/posthog-server'
 import { getAllWorkspacesFromSupabase } from '@/lib/supabase'
 
 export async function POST(req: NextRequest) {
@@ -46,15 +46,45 @@ Generate a concise PDR card following the format above. Be specific and actionab
       return NextResponse.json({ error: 'LLM call failed', details: error }, { status: 500 })
     }
     
-    // Track AI event
+    // Track AI event via direct PostHog API
     try {
-      await captureServerEvent(
-        'ai_pdr_draft_created',
-        userId,
-        workspaceId,
-        { trace_id: traceId, omtm_score: activationRate }
-      )
-      console.log('✅ Tracked ai_pdr_draft_created event')
+      const posthogHost = (process.env.POSTHOG_HOST || 'https://eu.i.posthog.com').trim()
+      const posthogKey = process.env.POSTHOG_SERVER_KEY?.trim()
+      
+      if (posthogKey) {
+        const eventUuid = uuidv4()
+        const trackingData = {
+          api_key: posthogKey,
+          event: 'ai_pdr_draft_created',
+          distinct_id: userId,
+          properties: {
+            workspace_id: workspaceId,
+            event_uuid: eventUuid,
+            trace_id: traceId,
+            omtm_score: activationRate
+          },
+          groups: {
+            workspace: workspaceId
+          }
+        }
+        
+        console.log('Sending to PostHog:', trackingData)
+        
+        const trackResponse = await fetch(`${posthogHost}/capture/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(trackingData)
+        })
+        
+        const trackResponseText = await trackResponse.text()
+        console.log('PostHog response:', trackResponse.status, trackResponseText)
+        
+        if (!trackResponse.ok) {
+          console.error('❌ PostHog tracking failed:', trackResponseText)
+        } else {
+          console.log('✅ Tracked ai_pdr_draft_created event')
+        }
+      }
     } catch (trackError) {
       console.error('❌ Failed to track ai_pdr_draft_created:', trackError)
     }
