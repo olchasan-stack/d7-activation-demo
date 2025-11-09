@@ -1,4 +1,4 @@
-import { createClient, PostgrestFilterBuilder } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -34,10 +34,7 @@ interface EventSourceConfig {
   workspaceIdFromRow: (row: SupabaseRow) => string | undefined
   workspaceNameFromRow: (row: SupabaseRow) => string | undefined
   distinctIdFromRow: (row: SupabaseRow) => string | undefined
-  applyWorkspaceFilter: (
-    query: PostgrestFilterBuilder<any, any, any>,
-    workspaceId: string
-  ) => PostgrestFilterBuilder<any, any, any>
+  applyWorkspaceFilter: (query: any, workspaceId: string) => any
 }
 
 const EVENT_SOURCES: EventSourceConfig[] = [
