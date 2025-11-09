@@ -119,7 +119,7 @@ async function fetchWorkspacesFromSource(source: EventSourceConfig): Promise<Wor
       }
     }
 
-    const workspaceStats = await Promise.all(
+    const workspaceStats: (WorkspaceStats | null)[] = await Promise.all(
       Array.from(uniqueWorkspaces.entries()).map(async ([workspaceId, wsEvent]) => {
         try {
           const workspaceQuery = source.applyWorkspaceFilter(
@@ -141,11 +141,11 @@ async function fetchWorkspacesFromSource(source: EventSourceConfig): Promise<Wor
             new Date().toISOString()
           const distinctId = source.distinctIdFromRow(wsEvent)
 
-          const eventsArray = allEvents ?? []
-          const hasProject = eventsArray.some((eventRow) => eventRow?.event === 'project_created')
-          const taskCount = eventsArray.filter((eventRow) => eventRow?.event === 'task_completed').length
-          const inviteSent = eventsArray.some((eventRow) => eventRow?.event === 'invite_sent')
-          const inviteAccepted = eventsArray.some((eventRow) => eventRow?.event === 'invite_accepted')
+          const eventsArray = (allEvents ?? []) as SupabaseRow[]
+          const hasProject = eventsArray.some((eventRow: SupabaseRow) => eventRow?.event === 'project_created')
+          const taskCount = eventsArray.filter((eventRow: SupabaseRow) => eventRow?.event === 'task_completed').length
+          const inviteSent = eventsArray.some((eventRow: SupabaseRow) => eventRow?.event === 'invite_sent')
+          const inviteAccepted = eventsArray.some((eventRow: SupabaseRow) => eventRow?.event === 'invite_accepted')
           const isActivated = hasProject && taskCount >= 3
 
           return {
@@ -166,7 +166,8 @@ async function fetchWorkspacesFromSource(source: EventSourceConfig): Promise<Wor
       })
     )
 
-    return workspaceStats.filter((ws): ws is WorkspaceStats => ws !== null)
+    const filteredWorkspaces = workspaceStats.filter((ws): ws is WorkspaceStats => ws !== null)
+    return filteredWorkspaces
   } catch (error) {
     console.warn(`Failed to fetch workspaces from ${source.table}:`, error)
     return []
