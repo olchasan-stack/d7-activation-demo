@@ -1,13 +1,15 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { analytics } from '@/lib/analytics'
+import { SegmentSelection, toSegmentProperties } from '@/lib/segments'
 
 interface AnomalyDetectorProps {
   userId: string
   workspaceId: string
+  segment: SegmentSelection
 }
 
-export default function AnomalyDetector({ userId, workspaceId }: AnomalyDetectorProps) {
+export default function AnomalyDetector({ userId, workspaceId, segment }: AnomalyDetectorProps) {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ alert: boolean; activationRate: number; threshold: number; message: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -17,9 +19,9 @@ export default function AnomalyDetector({ userId, workspaceId }: AnomalyDetector
   useEffect(() => {
     if (userId && workspaceId) {
       analytics.identify(userId)
-      analytics.group('workspace', workspaceId)
+      analytics.group('workspace', workspaceId, toSegmentProperties(segment))
     }
-  }, [userId, workspaceId])
+  }, [userId, workspaceId, segment])
   
   const detectAnomaly = async () => {
     setLoading(true)
@@ -30,7 +32,7 @@ export default function AnomalyDetector({ userId, workspaceId }: AnomalyDetector
       const response = await fetch('/api/ai/anomaly', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, workspaceId, threshold: threshold / 100 })
+        body: JSON.stringify({ userId, workspaceId, threshold: threshold / 100, segment })
       })
       
       const data = await response.json()

@@ -4,9 +4,12 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { analytics } from '@/lib/analytics'
 import OnboardingStepper from '@/components/OnboardingStepper'
+import SegmentSelector from '@/components/SegmentSelector'
+import { SegmentSelection, defaultSegmentSelection } from '@/lib/segments'
 
 export default function Page() {
   const [userId, setUserId] = useState('u_1001')
+  const [segment, setSegment] = useState<SegmentSelection>(defaultSegmentSelection)
 
   useEffect(() => {
     // Auto-identify user on mount
@@ -57,10 +60,14 @@ export default function Page() {
           </div>
         </div>
 
+        {/* Segment Selector */}
+        <SegmentSelector segment={segment} onChange={setSegment} />
+
         {/* Onboarding Stepper */}
         <OnboardingStepper 
           userId={userId}
           workspaceId=""
+          segment={segment}
           onWorkspaceCreated={(newWorkspaceId) => console.log('Workspace created:', newWorkspaceId)}
         />
 

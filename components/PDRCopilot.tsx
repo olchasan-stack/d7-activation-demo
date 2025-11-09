@@ -1,13 +1,15 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { analytics } from '@/lib/analytics'
+import { SegmentSelection, toSegmentProperties } from '@/lib/segments'
 
 interface PDRCopilotProps {
   userId: string
   workspaceId: string
+  segment: SegmentSelection
 }
 
-export default function PDRCopilot({ userId, workspaceId }: PDRCopilotProps) {
+export default function PDRCopilot({ userId, workspaceId, segment }: PDRCopilotProps) {
   const [loading, setLoading] = useState(false)
   const [pdr, setPdr] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -16,9 +18,9 @@ export default function PDRCopilot({ userId, workspaceId }: PDRCopilotProps) {
   useEffect(() => {
     if (userId && workspaceId) {
       analytics.identify(userId)
-      analytics.group('workspace', workspaceId)
+      analytics.group('workspace', workspaceId, toSegmentProperties(segment))
     }
-  }, [userId, workspaceId])
+  }, [userId, workspaceId, segment])
   
   const generatePDR = async () => {
     setLoading(true)
@@ -29,7 +31,7 @@ export default function PDRCopilot({ userId, workspaceId }: PDRCopilotProps) {
       const response = await fetch('/api/ai/pdr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, workspaceId })
+             body: JSON.stringify({ userId, workspaceId, segment })
       })
       
       const data = await response.json()

@@ -41,14 +41,19 @@ export function bindWorkspace(workspaceId: string, props?: Record<string, any>) 
   initPostHog()
   // Use posthog.group() to create the group and associate session events with it
   // This follows PostHog's exact pattern from their docs
-  posthog.group('workspace', String(workspaceId))
+  posthog.group('workspace', String(workspaceId), props)
 }
 
 export function resetAnalytics() {
   posthog.reset()
 }
 
-export function captureProjectCreated(workspaceId: string, projectId: string, templateId?: string) {
+export function captureProjectCreated(
+  workspaceId: string,
+  projectId: string,
+  templateId?: string,
+  extraProperties?: Record<string, unknown>
+) {
   const initialized = initPostHog()
   console.log('captureProjectCreated called:', { workspaceId, projectId, templateId, initialized })
   if (!initialized) {
@@ -60,7 +65,8 @@ export function captureProjectCreated(workspaceId: string, projectId: string, te
   const properties = {
     workspace_id: String(workspaceId),
     project_id: String(projectId),
-    ...(templateId ? { template_id: String(templateId) } : {})
+    ...(templateId ? { template_id: String(templateId) } : {}),
+    ...(extraProperties ?? {})
   }
   
   try {
@@ -78,7 +84,12 @@ export function captureProjectCreated(workspaceId: string, projectId: string, te
   }
 }
 
-export function captureTaskCompleted(workspaceId: string, taskId: string, projectId: string) {
+export function captureTaskCompleted(
+  workspaceId: string,
+  taskId: string,
+  projectId: string,
+  extraProperties?: Record<string, unknown>
+) {
   const initialized = initPostHog()
   console.log('captureTaskCompleted called:', { workspaceId, taskId, projectId, initialized })
   if (!initialized) {
@@ -90,7 +101,8 @@ export function captureTaskCompleted(workspaceId: string, taskId: string, projec
   const properties = {
     workspace_id: String(workspaceId),
     task_id: String(taskId),
-    project_id: String(projectId)
+    project_id: String(projectId),
+    ...(extraProperties ?? {})
   }
   
   try {

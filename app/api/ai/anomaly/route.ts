@@ -3,16 +3,25 @@ import { v4 as uuidv4 } from 'uuid'
 import { callLLM } from '@/lib/ai-service'
 import { getAllWorkspacesFromSupabase } from '@/lib/supabase'
 import { evaluateAnomalyQuality } from '@/lib/ai-eval-service'
+import { SegmentSelection, defaultSegmentSelection, toSegmentProperties } from '@/lib/segments'
 
 const DEFAULT_THRESHOLD = 0.5 // 50% activation rate
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, workspaceId, threshold = DEFAULT_THRESHOLD } = await req.json()
+    const { userId, workspaceId, threshold = DEFAULT_THRESHOLD, segment } = await req.json()
     
     if (!userId || !workspaceId) {
       return NextResponse.json({ error: 'Missing userId or workspaceId' }, { status: 400 })
     }
+
+    const segmentSelection: SegmentSelection = {
+      plan: segment?.plan ?? defaultSegmentSelection.plan,
+      region: segment?.region ?? defaultSegmentSelection.region,
+      channel: segment?.channel ?? defaultSegmentSelection.channel,
+      variant: segment?.variant ?? defaultSegmentSelection.variant
+    }
+    const segmentProperties = toSegmentProperties(segmentSelection)
     
     // Fetch dashboard stats from Supabase
     const workspaces = await getAllWorkspacesFromSupabase()
@@ -24,11 +33,11 @@ export async function POST(req: NextRequest) {
     const isAnomaly = activationRate < threshold
     
     if (!isAnomaly) {
-      return NextResponse.json({ 
-        alert: false, 
-        activationRate, 
+      return NextResponse.json({
+        alert: false,
+        activationRate,
         threshold,
-        message: 'D7 metrics within normal range' 
+        message: 'D7 metrics within normal range'
       })
     }
     
@@ -98,7 +107,8 @@ Analyze and provide:
             metric: 'd7_activation',
             threshold,
             actual_value: activationRate,
-            suggested_action: response
+            suggested_action: response,
+            ...segmentProperties
           },
           groups: {
             workspace: workspaceId
@@ -115,12 +125,13 @@ Analyze and provide:
       console.error('❌ Failed to track ai_anomaly_alerted:', trackError)
     }
     
-    return NextResponse.json({ 
-      alert: true, 
+    return NextResponse.json({
+      alert: true,
       activationRate,
       threshold,
-      message: response, 
-      traceId 
+      message: response,
+      traceId,
+      segment: segmentSelection
     })
   } catch (error) {
     console.error('Error detecting anomaly:', error)

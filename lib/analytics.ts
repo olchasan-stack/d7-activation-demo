@@ -5,10 +5,20 @@ import { PostHogAnalytics } from './analytics-posthog'
 interface IAnalytics {
   init(): boolean
   identify(userId: string): void
-  group(groupType: string, groupId: string): void
+  group(groupType: string, groupId: string, properties?: Record<string, unknown>): void
   reset(): void
-  captureProjectCreated(workspaceId: string, projectId: string, templateId?: string): void
-  captureTaskCompleted(workspaceId: string, taskId: string, projectId: string): void
+  captureProjectCreated(
+    workspaceId: string,
+    projectId: string,
+    templateId?: string,
+    properties?: Record<string, unknown>
+  ): void
+  captureTaskCompleted(
+    workspaceId: string,
+    taskId: string,
+    projectId: string,
+    properties?: Record<string, unknown>
+  ): void
 }
 
 // Factory: return noop if analytics disabled, otherwise PostHog

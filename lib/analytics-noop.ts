@@ -9,7 +9,7 @@ export class NoopAnalytics {
     // No-op
   }
 
-  group(_groupType: string, _groupId: string): void {
+  group(_groupType: string, _groupId: string, _properties?: Record<string, unknown>): void {
     // No-op
   }
 
@@ -17,11 +17,11 @@ export class NoopAnalytics {
     // No-op
   }
 
-  captureProjectCreated(_workspaceId: string, _projectId: string, _templateId?: string): void {
+  captureProjectCreated(_workspaceId: string, _projectId: string, _templateId?: string, _properties?: Record<string, unknown>): void {
     // No-op
   }
 
-  captureTaskCompleted(_workspaceId: string, _taskId: string, _projectId: string): void {
+  captureTaskCompleted(_workspaceId: string, _taskId: string, _projectId: string, _properties?: Record<string, unknown>): void {
     // No-op
   }
 }

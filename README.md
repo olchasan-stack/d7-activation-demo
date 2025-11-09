@@ -76,6 +76,7 @@ Open: http://localhost:3000/
 - **PostHog Dashboards**: Funnel, Retention, Risk metrics configured for workspace-level analysis (see `POSTHOG_DASHBOARDS.md`).
 - **AI-Powered Analytics**: Langfuse tracing, PDR Copilot, SQL generator, anomaly detection (OpenAI/Anthropic).
 - **AI Quality Evaluation**: LLM-as-a-Judge quality checks with Langfuse scoring (optional, enable via `ENABLE_AI_EVALUATION=true`).
+- **Segment & Variant Demo Controls**: Built-in selector for Plan/Region/Channel/Experiment Variant; all demo events automatically include these properties plus feature-flag variant for PostHog dashboards.
 - **D7 SQL** and **Supabase schema** (see `/sql`): compute D7 on your own DB.
 
 > You can replace the UI with v0.app generated components and just call the helpers.
@@ -146,6 +147,8 @@ All server-side events use direct `fetch()` calls to PostHog's `/capture/` API i
 
 ### AI Quality Evaluation (Optional)
 Enable LLM-as-a-Judge evaluation by setting `ENABLE_AI_EVALUATION=true` in your environment:
+- **Segment Overlay (Demo)**: Dashboard shows the active segment, relevant guardrails (Activation Rate, Risk per 100), and highlights Langfuse eval coverage for CPO cockpit storytelling.
+
 - **PDR Evaluation**: Checks format validity, data-driven insights, and actionability (0-1 scores)
 - **SQL Evaluation**: Validates syntax, safety, and relevance to user intent
 - **Anomaly Evaluation**: Assesses root cause quality and data-driven analysis

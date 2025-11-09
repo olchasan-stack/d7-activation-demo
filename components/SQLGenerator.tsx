@@ -1,13 +1,15 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { analytics } from '@/lib/analytics'
+import { SegmentSelection, toSegmentProperties } from '@/lib/segments'
 
 interface SQLGeneratorProps {
   userId: string
   workspaceId: string
+  segment: SegmentSelection
 }
 
-export default function SQLGenerator({ userId, workspaceId }: SQLGeneratorProps) {
+export default function SQLGenerator({ userId, workspaceId, segment }: SQLGeneratorProps) {
   const [loading, setLoading] = useState(false)
   const [sql, setSql] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -19,9 +21,9 @@ export default function SQLGenerator({ userId, workspaceId }: SQLGeneratorProps)
   useEffect(() => {
     if (userId && workspaceId) {
       analytics.identify(userId)
-      analytics.group('workspace', workspaceId)
+      analytics.group('workspace', workspaceId, toSegmentProperties(segment))
     }
-  }, [userId, workspaceId])
+  }, [userId, workspaceId, segment])
   
   const generateSQL = async () => {
     if (!query.trim()) {
@@ -38,7 +40,7 @@ export default function SQLGenerator({ userId, workspaceId }: SQLGeneratorProps)
       const response = await fetch('/api/ai/sql', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, workspaceId, naturalLanguageQuery: query, queryType })
+        body: JSON.stringify({ userId, workspaceId, naturalLanguageQuery: query, queryType, segment })
       })
       
       const data = await response.json()

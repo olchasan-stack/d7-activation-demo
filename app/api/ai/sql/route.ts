@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { callLLM } from '@/lib/ai-service'
 import { evaluateSQLQuality } from '@/lib/ai-eval-service'
+import { SegmentSelection, defaultSegmentSelection, toSegmentProperties } from '@/lib/segments'
 
 const SQL_SCHEMA = `
 Database: PostgreSQL (Supabase)
@@ -22,11 +23,19 @@ Example D7 query structure:
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, workspaceId, naturalLanguageQuery, queryType = 'custom' } = await req.json()
+    const { userId, workspaceId, naturalLanguageQuery, queryType = 'custom', segment } = await req.json()
     
     if (!userId || !workspaceId || !naturalLanguageQuery) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+
+    const segmentSelection: SegmentSelection = {
+      plan: segment?.plan ?? defaultSegmentSelection.plan,
+      region: segment?.region ?? defaultSegmentSelection.region,
+      channel: segment?.channel ?? defaultSegmentSelection.channel,
+      variant: segment?.variant ?? defaultSegmentSelection.variant
+    }
+    const segmentProperties = toSegmentProperties(segmentSelection)
     
     const systemPrompt = `You are a SQL expert specializing in PostgreSQL/Supabase queries for analytics.
 
@@ -92,7 +101,8 @@ Guidelines:
             event_uuid: eventUuid,
             trace_id: traceId,
             query_type: queryType as 'd7_metrics' | 'cohort_analysis' | 'custom',
-            query_validated: !hasDangerousKeyword
+            query_validated: !hasDangerousKeyword,
+            ...segmentProperties
           },
           groups: {
             workspace: workspaceId
@@ -109,10 +119,11 @@ Guidelines:
       console.error('❌ Failed to track ai_sql_generated:', trackError)
     }
     
-    return NextResponse.json({ 
-      sql: response, 
-      traceId, 
-      validated: !hasDangerousKeyword 
+    return NextResponse.json({
+      sql: response,
+      traceId,
+      validated: !hasDangerousKeyword,
+      segment: segmentSelection
     })
   } catch (error) {
     console.error('Error generating SQL:', error)

@@ -79,6 +79,7 @@ Built a Next.js demo app with PostHog Group Analytics for workspace-level D7 Act
 - [x] **Error handling** with console logging
 - [x] **Comprehensive docs** (README + Quick Start)
 - [x] **GitHub repository** ready for deployment
+- [x] **Segment-aware demo controls** (Plan/Region/Channel/Variant + guardrail overlay)
 
 ---
 

@@ -38,10 +38,7 @@ const BaseEvent = z.object({
 // Workspace Created Event
 export const WorkspaceCreatedEvent = BaseEvent.extend({
   event: z.literal('workspace_created'),
-  properties: z.object({
-    workspace_id: z.string(),
-    workspace_name: z.string(),
-  }),
+  properties: WorkspaceCreatedProperties,
   groups: z.object({
     workspace: z.string(),
   }),
@@ -50,11 +47,7 @@ export const WorkspaceCreatedEvent = BaseEvent.extend({
 // Project Created Event
 export const ProjectCreatedEvent = BaseEvent.extend({
   event: z.literal('project_created'),
-  properties: z.object({
-    workspace_id: z.string(),
-    project_id: z.string(),
-    template_id: z.string().optional(),
-  }),
+  properties: ProjectCreatedProperties,
   groups: z.object({
     workspace: z.string(),
   }),
@@ -63,11 +56,7 @@ export const ProjectCreatedEvent = BaseEvent.extend({
 // Task Completed Event
 export const TaskCompletedEvent = BaseEvent.extend({
   event: z.literal('task_completed'),
-  properties: z.object({
-    workspace_id: z.string(),
-    task_id: z.string(),
-    project_id: z.string(),
-  }),
+  properties: TaskCompletedProperties,
   groups: z.object({
     workspace: z.string(),
   }),
@@ -76,9 +65,7 @@ export const TaskCompletedEvent = BaseEvent.extend({
 // Invite Sent Event
 export const InviteSentEvent = BaseEvent.extend({
   event: z.literal('invite_sent'),
-  properties: z.object({
-    workspace_id: z.string(),
-  }),
+  properties: InviteEventProperties,
   groups: z.object({
     workspace: z.string(),
   }),
@@ -87,9 +74,7 @@ export const InviteSentEvent = BaseEvent.extend({
 // Invite Accepted Event
 export const InviteAcceptedEvent = BaseEvent.extend({
   event: z.literal('invite_accepted'),
-  properties: z.object({
-    workspace_id: z.string(),
-  }),
+  properties: InviteEventProperties,
   groups: z.object({
     workspace: z.string(),
   }),

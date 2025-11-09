@@ -2,18 +2,23 @@
 
 import { useState } from "react"
 import { analytics } from "@/lib/analytics"
+import { SegmentSelection, toSegmentProperties } from "@/lib/segments"
 
 type StepStatus = "idle" | "success"
 
-export default function OnboardingStepper({ 
-  userId = "u_1001", 
-  workspaceId: initialWorkspaceId = "",
-  onWorkspaceCreated
-}: { 
+interface OnboardingStepperProps {
   userId?: string
   workspaceId?: string
   onWorkspaceCreated?: (workspaceId: string) => void
-}) {
+  segment: SegmentSelection
+}
+
+export default function OnboardingStepper({
+  userId = "u_1001",
+  workspaceId: initialWorkspaceId = "",
+  onWorkspaceCreated,
+  segment
+}: OnboardingStepperProps) {
   const [workspaceId, setWorkspaceId] = useState(initialWorkspaceId || "")
   const [workspaceName, setWorkspaceName] = useState("My Workspace")
   const [workspaceStatus, setWorkspaceStatus] = useState<StepStatus>("idle")
@@ -29,10 +34,16 @@ export default function OnboardingStepper({
       const response = await fetch("/api/workspace", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           name: workspaceName, 
           userId: userId,
-          properties: { plan: 'free', seat_count: 2 }
+          properties: {
+            plan: segment.plan,
+            region: segment.region,
+            channel: segment.channel,
+            experiment_variant: segment.variant,
+            seat_count: 2
+          }
         }),
       })
       const result = await response.json()
@@ -40,7 +51,7 @@ export default function OnboardingStepper({
         console.log('✅ Workspace created successfully:', result)
         setWorkspaceId(result.workspaceId)
         // Bind workspace to analytics client side
-        analytics.group('workspace', result.workspaceId)
+        analytics.group('workspace', result.workspaceId, toSegmentProperties(segment))
         if (onWorkspaceCreated) {
           onWorkspaceCreated(result.workspaceId)
         }
@@ -58,7 +69,7 @@ export default function OnboardingStepper({
       console.error('Cannot create project without workspaceId')
       return
     }
-    analytics.captureProjectCreated(workspaceId, "pr_3001")
+    analytics.captureProjectCreated(workspaceId, "pr_3001", undefined, toSegmentProperties(segment))
     // Update dashboard stats
     await fetch("/api/track/project", {
       method: "POST",
@@ -73,7 +84,7 @@ export default function OnboardingStepper({
       console.error('Cannot complete task without workspaceId')
       return
     }
-    analytics.captureTaskCompleted(workspaceId, `t_${Date.now()}`, "pr_3001")
+    analytics.captureTaskCompleted(workspaceId, `t_${Date.now()}`, "pr_3001", toSegmentProperties(segment))
     // Update dashboard stats
     await fetch("/api/track/task", {
       method: "POST",
@@ -92,10 +103,11 @@ export default function OnboardingStepper({
     const response = await fetch("/api/track/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         event: "invite_sent", 
         distinctId: userId, 
-        workspaceId 
+        workspaceId,
+        properties: toSegmentProperties(segment)
       }),
     })
     if (response.ok) {
@@ -111,10 +123,11 @@ export default function OnboardingStepper({
     const response = await fetch("/api/track/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         event: "invite_accepted", 
         distinctId: userId, 
-        workspaceId 
+        workspaceId,
+        properties: toSegmentProperties(segment)
       }),
     })
     if (response.ok) {

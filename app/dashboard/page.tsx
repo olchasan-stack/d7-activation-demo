@@ -5,6 +5,9 @@ import Link from 'next/link'
 import PDRCopilot from '@/components/PDRCopilot'
 import SQLGenerator from '@/components/SQLGenerator'
 import AnomalyDetector from '@/components/AnomalyDetector'
+import SegmentSelector from '@/components/SegmentSelector'
+import SegmentStatusCard from '@/components/SegmentStatusCard'
+import { SegmentSelection, defaultSegmentSelection } from '@/lib/segments'
 
 interface WorkspaceStats {
   workspaceId: string
@@ -21,6 +24,7 @@ interface WorkspaceStats {
 export default function DashboardPage() {
   const [workspaces, setWorkspaces] = useState<WorkspaceStats[]>([])
   const [loading, setLoading] = useState(true)
+  const [segment, setSegment] = useState<SegmentSelection>(defaultSegmentSelection)
 
   const fetchStats = async () => {
     try {
@@ -104,12 +108,16 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Segment Controls & Guardrails */}
+        <SegmentSelector segment={segment} onChange={setSegment} />
+        <SegmentStatusCard segment={segment} />
+
         {/* AI Features */}
         {workspaces.length > 0 && workspaces[0].distinctId && (
           <>
-            <PDRCopilot userId={workspaces[0].distinctId} workspaceId={workspaces[0].workspaceId} />
-            <SQLGenerator userId={workspaces[0].distinctId} workspaceId={workspaces[0].workspaceId} />
-            <AnomalyDetector userId={workspaces[0].distinctId} workspaceId={workspaces[0].workspaceId} />
+            <PDRCopilot userId={workspaces[0].distinctId} workspaceId={workspaces[0].workspaceId} segment={segment} />
+            <SQLGenerator userId={workspaces[0].distinctId} workspaceId={workspaces[0].workspaceId} segment={segment} />
+            <AnomalyDetector userId={workspaces[0].distinctId} workspaceId={workspaces[0].workspaceId} segment={segment} />
           </>
         )}
 

@@ -3,16 +3,25 @@ import { v4 as uuidv4 } from 'uuid'
 import { callLLM } from '@/lib/ai-service'
 import { getAllWorkspacesFromSupabase } from '@/lib/supabase'
 import { evaluatePDRQuality } from '@/lib/ai-eval-service'
+import { SegmentSelection, defaultSegmentSelection, toSegmentProperties } from '@/lib/segments'
 
 export async function POST(req: NextRequest) {
   console.log('🎯 PDR API called')
   try {
-    const { userId, workspaceId } = await req.json()
-    console.log('📥 Request data:', { userId, workspaceId })
+    const { userId, workspaceId, segment } = await req.json()
+    console.log('📥 Request data:', { userId, workspaceId, segment })
     
     if (!userId || !workspaceId) {
       return NextResponse.json({ error: 'Missing userId or workspaceId' }, { status: 400 })
     }
+
+    const segmentSelection: SegmentSelection = {
+      plan: segment?.plan ?? defaultSegmentSelection.plan,
+      region: segment?.region ?? defaultSegmentSelection.region,
+      channel: segment?.channel ?? defaultSegmentSelection.channel,
+      variant: segment?.variant ?? defaultSegmentSelection.variant
+    }
+    const segmentProperties = toSegmentProperties(segmentSelection)
     
     // Fetch dashboard stats from Supabase
     const workspaces = await getAllWorkspacesFromSupabase()
@@ -75,7 +84,8 @@ Generate a concise PDR card following the format above. Be specific and actionab
             workspace_id: workspaceId,
             event_uuid: eventUuid,
             trace_id: traceId,
-            omtm_score: activationRate
+            omtm_score: activationRate,
+            ...segmentProperties
           },
           groups: {
             workspace: workspaceId
@@ -103,7 +113,7 @@ Generate a concise PDR card following the format above. Be specific and actionab
       console.error('❌ Failed to track ai_pdr_draft_created:', trackError)
     }
     
-    return NextResponse.json({ pdr: response, traceId })
+    return NextResponse.json({ pdr: response, traceId, segment: segmentSelection })
   } catch (error) {
     console.error('Error generating PDR:', error)
     return NextResponse.json(
