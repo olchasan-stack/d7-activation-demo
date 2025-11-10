@@ -86,7 +86,7 @@ export async function getAllWorkspacesFromSupabase(): Promise<WorkspaceStats[]> 
   for (const source of EVENT_SOURCES) {
     const workspaces = await fetchWorkspacesFromSource(source)
     if (workspaces.length > 0) {
-      return workspaces
+      return workspaces.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     }
   }
 
