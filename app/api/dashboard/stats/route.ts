@@ -17,12 +17,16 @@ export async function GET() {
       console.log('Dashboard stats from in-memory store:', { total: workspaces.length, activated: workspaces.filter(w => w.isActivated).length })
     }
 
-    return NextResponse.json({ workspaces })
+    const response = NextResponse.json({ workspaces })
+    response.headers.set('Cache-Control', 'no-store')
+    return response
   } catch (error) {
     console.error('Error fetching dashboard stats:', error)
     // Fallback to in-memory store on error
     const workspaces = getAllWorkspaceStats()
-    return NextResponse.json({ workspaces })
+    const response = NextResponse.json({ workspaces })
+    response.headers.set('Cache-Control', 'no-store')
+    return response
   }
 }
 
