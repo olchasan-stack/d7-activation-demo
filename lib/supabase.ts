@@ -50,31 +50,8 @@ const EVENT_SOURCES: EventSourceConfig[] = [
     applyWorkspaceFilter: (query, workspaceId) =>
       query.eq('properties->>workspace_id', workspaceId)
   },
-  {
-    table: 'external_events_raw',
-    selectWorkspaceList: 'properties,timestamp,distinct_id,event',
-    selectWorkspaceEvents: 'event,properties,timestamp',
-    eventField: 'event',
-    timestampField: 'timestamp',
-    workspaceIdFromRow: (row) => row?.properties?.workspace_id as string | undefined,
-    workspaceNameFromRow: (row) => row?.properties?.workspace_name as string | undefined,
-    distinctIdFromRow: (row) => row?.distinct_id as string | undefined,
-    applyWorkspaceFilter: (query, workspaceId) =>
-      query.eq('properties->>workspace_id', workspaceId)
-  },
-  {
-    table: 'events',
-    selectWorkspaceList: 'properties,ts:timestamp,distinct_id,event:event_name,workspace_id',
-    selectWorkspaceEvents: 'event:event_name,properties,ts:timestamp,workspace_id',
-    eventField: 'event',
-    timestampField: 'timestamp',
-    workspaceIdFromRow: (row) =>
-      (row?.workspace_id as string | undefined) ?? (row?.properties?.workspace_id as string | undefined),
-    workspaceNameFromRow: (row) => row?.properties?.workspace_name as string | undefined,
-    distinctIdFromRow: (row) => row?.distinct_id as string | undefined,
-    applyWorkspaceFilter: (query, workspaceId) =>
-      query.or(`workspace_id.eq.${workspaceId},properties->>workspace_id.eq.${workspaceId}`)
-  }
+  // Additional sources (e.g. external_events_raw / events) can be re-enabled if needed
+  // but they are disabled now to avoid including raw $groupidentify records that lack workspace_id.
 ]
 
 export async function getAllWorkspacesFromSupabase(): Promise<WorkspaceStats[]> {
