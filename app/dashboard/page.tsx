@@ -28,7 +28,7 @@ export default function DashboardPage() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/dashboard/stats')
+      const response = await fetch('/api/dashboard/stats', { cache: 'no-store' })
       const data = await response.json()
       setWorkspaces(data.workspaces || [])
       setLoading(false)
