@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server'
 import { getAllWorkspaceStats } from '@/lib/workspace-stats'
 import { getAllWorkspacesFromSupabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 export async function GET() {
   try {
     // Try to get workspaces from Supabase first, fallback to in-memory store

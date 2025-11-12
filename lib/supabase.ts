@@ -77,7 +77,8 @@ async function fetchWorkspacesFromSource(source: EventSourceConfig): Promise<Wor
       .from(source.table)
       .select(source.selectWorkspaceList)
       .eq(source.eventField, 'workspace_created')
-      .order(source.timestampField, { ascending: true })
+      .order(source.timestampField, { ascending: false })
+      .limit(5000)
 
     if (workspaceError) {
       console.warn(`Error fetching workspace_created events from ${source.table}:`, workspaceError)
